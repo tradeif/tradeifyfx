@@ -1,0 +1,23 @@
+{
+  "name": "TRADEIFYFX - Premium Trading Education & Signals",
+  "short_name": "TRADEIFYFX",
+  "description": "Master Forex, Gold, and Crypto trading with SMC, live charts, and verified trade signals.",
+  "theme_color": "#050505",
+  "background_color": "#050505",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=192&auto=format&fit=crop",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=512&auto=format&fit=crop",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
