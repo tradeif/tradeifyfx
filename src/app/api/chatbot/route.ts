@@ -44,7 +44,7 @@ Do not discuss topics unrelated to trading or the platform.`;
 
     // NVIDIA DeepSeek requires vendor-specific params not in the OpenAI types
     const completion = await (openai.chat.completions.create as (...args: unknown[]) => Promise<unknown>)({
-      model: "deepseek-ai/deepseek-v4-flash",
+      model: "deepseek-ai/deepseek-v4-pro",
       messages: [
         { role: "system", content: systemPrompt },
         ...chatHistory,

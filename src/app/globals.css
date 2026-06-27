@@ -323,6 +323,16 @@ body {
   filter: invert(0) !important;
 }
 
+.ticker-wrapper {
+  width: 100%;
+  overflow: hidden !important;
+}
+
+.ticker-content {
+  width: 100%;
+  min-width: 100%;
+}
+
 /* High contrast styles for dropdown/overlays on dark backgrounds */
 .dropdown-forced-title {
   color: #ffffff !important;

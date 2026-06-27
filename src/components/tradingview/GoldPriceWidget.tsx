@@ -25,7 +25,7 @@ export default function GoldPriceWidget() {
       showSymbolLogo: true,
       colorTheme: "dark",
       isTransparent: true,
-      displayMode: "adaptive",
+      displayMode: "regular",
       locale: "en"
     });
 
@@ -33,8 +33,8 @@ export default function GoldPriceWidget() {
   }, []);
 
   return (
-    <div className="w-full border-y border-white/5 bg-black/80 overflow-hidden py-1 h-[46px] no-scrollbar">
-      <div className="tradingview-widget-container">
+    <div className="ticker-wrapper border-y border-white/5 bg-black/80 py-1 h-[46px] no-scrollbar">
+      <div className="tradingview-widget-container ticker-content">
         <div ref={container} className="tradingview-widget-container__widget"></div>
       </div>
     </div>
