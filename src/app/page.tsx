@@ -9,7 +9,6 @@ import GoldPriceWidget from "@/components/tradingview/GoldPriceWidget";
 import LiveChart from "@/components/tradingview/LiveChart";
 import EconomicCalendar from "@/components/tradingview/EconomicCalendar";
 import AIChatBot from "@/components/chatbot/AIChatBot";
-import GoldenChargingBull from "@/components/tradingview/GoldenChargingBull";
 import Image from "next/image";
 import { triggerRazorpayCheckout } from "@/utils/razorpay";
 import {
@@ -127,69 +126,61 @@ export default function Home() {
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-green-accent/5 rounded-full blur-[140px] pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              {/* Text Info */}
-              <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold/5 text-gold text-xs font-semibold uppercase tracking-wider animate-bounce">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>#1 Trading Education Community</span>
-                </div>
-                
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-sans leading-tight text-title">
-                  Master Forex, Gold & <br />
-                  <span className="text-gradient-gold">Crypto Trading</span> <br />
-                  Like a Professional
-                </h1>
-                
-                <p className="text-desc text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                  Join TRADEIFYFX and learn real trading strategies, live market analysis, risk management, and professional mentorship.
-                </p>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold/5 text-gold text-xs font-semibold uppercase tracking-wider animate-bounce">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>#1 Trading Education Community</span>
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-sans leading-tight text-title">
+                Master Forex, Gold & <br />
+                <span className="text-gradient-gold">Crypto Trading</span> <br />
+                Like a Professional
+              </h1>
+              
+              <p className="text-desc text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed font-medium">
+                Join TRADEIFYFX and learn real trading strategies, live market analysis, risk management, and professional mentorship.
+              </p>
 
-                {/* Hero CTAs */}
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-                  <a
-                    href="#courses"
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-gold text-black font-extrabold text-sm text-center shadow-lg hover:opacity-95 glow-gold transition-all duration-300 cursor-pointer"
-                  >
-                    Start Learning
-                  </a>
-                  <a
-                    href="https://wa.me/919799450432"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-sec border border-gray-200 dark:border-white/10 text-center font-bold text-sm transition-all duration-300 cursor-pointer"
-                  >
-                    Join Community
-                  </a>
-                  <a
-                    href="#contact"
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-black/60 dark:hover:bg-black text-gray-900 dark:text-gray-300 border border-gray-200 dark:border-white/5 text-center font-bold text-sm transition-all cursor-pointer"
-                  >
-                    Contact Us
-                  </a>
-                </div>
-
-                {/* Fast Trust Indicators */}
-                <div className="grid grid-cols-3 gap-4 pt-8 border-t border-panel-border max-w-md mx-auto lg:mx-0 text-center lg:text-left">
-                  <div>
-                    <h4 className="text-xl font-bold text-gold">{studentsCount}+</h4>
-                    <p className="text-[10px] text-desc uppercase font-semibold">Trained Students</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-green-accent">92%</h4>
-                    <p className="text-[10px] text-desc uppercase font-semibold">Success Rate</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-title">4.9/5</h4>
-                    <p className="text-[10px] text-desc uppercase font-semibold">Google Rating</p>
-                  </div>
-                </div>
+              {/* Hero CTAs */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <a
+                  href="#courses"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-gold text-black font-extrabold text-sm text-center shadow-lg hover:opacity-95 glow-gold transition-all duration-300 cursor-pointer"
+                >
+                  Start Learning
+                </a>
+                <a
+                  href="https://wa.me/919799450432"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-sec border border-gray-200 dark:border-white/10 text-center font-bold text-sm transition-all duration-300 cursor-pointer"
+                >
+                  Join Community
+                </a>
+                <a
+                  href="#contact"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-black/60 dark:hover:bg-black text-gray-900 dark:text-gray-300 border border-gray-200 dark:border-white/5 text-center font-bold text-sm transition-all cursor-pointer"
+                >
+                  Contact Us
+                </a>
               </div>
 
-              {/* Photorealistic 3D Gold Charging Bull */}
-              <div className="lg:col-span-5 relative flex items-center justify-center w-full h-[400px] md:h-[480px]">
-                <GoldenChargingBull />
+              {/* Fast Trust Indicators */}
+              <div className="grid grid-cols-3 gap-4 pt-8 border-t border-panel-border max-w-md mx-auto text-center">
+                <div>
+                  <h4 className="text-xl font-bold text-gold">{studentsCount}+</h4>
+                  <p className="text-[10px] text-desc uppercase font-semibold">Trained Students</p>
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-green-accent">92%</h4>
+                  <p className="text-[10px] text-desc uppercase font-semibold">Success Rate</p>
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-title">4.9/5</h4>
+                  <p className="text-[10px] text-desc uppercase font-semibold">Google Rating</p>
+                </div>
               </div>
             </div>
           </div>

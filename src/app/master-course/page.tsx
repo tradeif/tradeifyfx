@@ -15,12 +15,12 @@ import { useFirebaseAuth } from "@/lib/firebaseAuth";
 
 const COURSE_MODULES = [
   {
-    id: "m1", title: "Basics of Stock Market",
+    id: "m1", title: "Basics of Forex Trading",
     lessons: [
-      { id: "l1", title: "What is the Stock Market?", duration: "12 min" },
-      { id: "l2", title: "How Markets Work & Key Participants", duration: "18 min" },
-      { id: "l3", title: "Types of Financial Instruments", duration: "15 min" },
-      { id: "l4", title: "Stock Exchanges & Trading Hours", duration: "10 min" },
+      { id: "l1", title: "What is Forex Trading & How it Works?", duration: "12 min" },
+      { id: "l2", title: "Major Currency Pairs & Market Participants", duration: "18 min" },
+      { id: "l3", title: "Understanding Pips, Lots & Leverage", duration: "15 min" },
+      { id: "l4", title: "Forex Market Sessions & Trading Hours", duration: "10 min" },
     ]
   },
   {
@@ -190,7 +190,7 @@ function CourseAuthGate({ onSuccess }: { onSuccess: () => void }) {
               Complete Trading Education from <span style={{ background: "linear-gradient(135deg, #FFF5C0 0%, #FFD700 50%, #D4AF37 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textShadow: "none", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.9))" }}>Market Experts</span>
             </h2>
             <p className="text-sm" style={{ color: "#d1d5db" }}>
-              From stock market basics to advanced SMC, options trading, and professional strategies — all in one program.
+              From Forex trading basics to advanced SMC, options trading, and professional strategies — all in one program.
             </p>
           </div>
 

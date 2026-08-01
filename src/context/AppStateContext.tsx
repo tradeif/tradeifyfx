@@ -134,9 +134,9 @@ const INITIAL_COURSES: Course[] = [
   {
     id: "master-trader-course",
     title: "MASTER TRADER COURSE",
-    description: "Complete trading education from market experts — from stock market basics to advanced SMC, options trading, and professional strategies.",
+    description: "Complete trading education from market experts — from Forex trading basics to advanced SMC, options trading, and professional strategies.",
     features: [
-      "Basic of Stock Market",
+      "Basics of Forex Trading",
       "Market Psychology & Setup",
       "Ultimate Options Trading",
       "IBZ 3.0",
