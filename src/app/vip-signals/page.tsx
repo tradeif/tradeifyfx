@@ -324,30 +324,52 @@ function VIPDashboard() {
 
   const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "TARGET" | "SL" | "CTC">("ALL");
 
-  // Load VIP signals from localStorage if available
+  // Load VIP signals from localStorage if available and sync across tabs/updates
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("tfx_vip_signals");
-      if (stored !== null) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setSignalsList(parsed);
+    const loadSignals = () => {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("tfx_vip_signals");
+        if (stored !== null) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              setSignalsList(parsed);
+            }
+          } catch (e) {
+            console.error("Failed to parse stored VIP signals", e);
           }
-        } catch (e) {
-          console.error("Failed to parse stored VIP signals", e);
+        } else {
+          // Initialize localStorage on first load
+          localStorage.setItem("tfx_vip_signals", JSON.stringify(INITIAL_SIGNALS));
+          setSignalsList(INITIAL_SIGNALS);
         }
-      } else {
-        // Initialize localStorage on first load
-        localStorage.setItem("tfx_vip_signals", JSON.stringify(INITIAL_SIGNALS));
-        setSignalsList(INITIAL_SIGNALS);
       }
-    }
+    };
+
+    loadSignals();
+
+    const handleSync = () => {
+      loadSignals();
+    };
+
+    window.addEventListener("storage", handleSync);
+    window.addEventListener("tfx_vip_signals_updated", handleSync);
+
+    return () => {
+      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("tfx_vip_signals_updated", handleSync);
+    };
   }, []);
 
   if (!user) return null;
 
-  const isAdmin = true;
+  const adminEmails = ["trader.kishan@gmail.com", "trader.kishann@gmail.com"];
+  const isAdmin = Boolean(
+    user?.email &&
+      (adminEmails.includes(user.email.toLowerCase().trim()) ||
+        user.email.toLowerCase().includes("admin") ||
+        (user as any).role === "admin")
+  );
 
   const filteredSignals = signalsList.filter((sig) => {
     if (filterTab === "ACTIVE") return sig.status === "Active";
@@ -360,6 +382,15 @@ function VIPDashboard() {
   const loginDate = user.loginHistory?.[0]
     ? new Date(user.loginHistory[0]).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
     : "Today";
+
+  const saveAndBroadcastSignals = (updated: VIPSignalItem[]) => {
+    setSignalsList(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
+      localStorage.setItem("tfx_signals", JSON.stringify(updated));
+      window.dispatchEvent(new Event("tfx_vip_signals_updated"));
+    }
+  };
 
   const handleAddSignal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,10 +416,7 @@ function VIPDashboard() {
     };
 
     const updated = [newSignal, ...signalsList];
-    setSignalsList(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
-    }
+    saveAndBroadcastSignals(updated);
 
     // Reset Form
     setPair("");
@@ -445,11 +473,7 @@ function VIPDashboard() {
       return sig;
     });
 
-    setSignalsList(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
-    }
-
+    saveAndBroadcastSignals(updated);
     setShowEditModal(false);
     setEditingSignal(null);
   };
@@ -461,19 +485,13 @@ function VIPDashboard() {
       }
       return sig;
     });
-    setSignalsList(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
-    }
+    saveAndBroadcastSignals(updated);
   };
 
   const handleDeleteSignal = (id: string) => {
     if (confirm("Are you sure you want to delete this signal?")) {
       const updated = signalsList.filter((s) => s.id !== id);
-      setSignalsList(updated);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
-      }
+      saveAndBroadcastSignals(updated);
     }
   };
 

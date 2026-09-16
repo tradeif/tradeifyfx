@@ -502,12 +502,20 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updated = [newSignal, ...signals];
     setSignals(updated);
     syncStorage("tfx_signals", updated);
+    syncStorage("tfx_vip_signals", updated);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("tfx_vip_signals_updated"));
+    }
   };
 
   const deleteSignal = (id: string) => {
     const updated = signals.filter(s => s.id !== id);
     setSignals(updated);
     syncStorage("tfx_signals", updated);
+    syncStorage("tfx_vip_signals", updated);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("tfx_vip_signals_updated"));
+    }
   };
 
   const addBlog = (blog: Omit<Blog, "id" | "slug" | "date" | "readTime">) => {
