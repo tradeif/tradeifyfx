@@ -35,7 +35,7 @@ export default function DashboardLayout({
   const sidebarLinks = [
     { name: "My Courses", href: "/dashboard", icon: BookOpen },
     { name: "Live Sessions", href: "/dashboard/live", icon: Video },
-    { name: "Trading Signals", href: "/dashboard/signals", icon: Zap },
+    { name: "Trading Signals", href: "/vip-signals", icon: Zap },
     { name: "Resources", href: "/dashboard/resources", icon: FileText },
     { name: "Profile Settings", href: "/dashboard/settings", icon: Settings },
   ];

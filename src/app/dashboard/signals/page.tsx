@@ -96,18 +96,22 @@ export default function TradingSignals() {
 
                 {/* Signals Data Box */}
                 {unlocked ? (
-                  <div className="grid grid-cols-3 gap-4 py-2 font-mono">
-                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-panel-border text-center">
-                      <span className="text-[9px] text-desc font-sans block uppercase font-bold tracking-widest mb-1">Entry Range</span>
-                      <span className="text-xs sm:text-sm font-black text-title">{sig.entry}</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2 font-mono text-center">
+                    <div className="bg-gray-50 dark:bg-white/5 p-2 rounded-lg border border-panel-border">
+                      <span className="text-[8px] text-desc font-sans block uppercase font-bold tracking-wider mb-1">Entry</span>
+                      <span className="text-xs font-black text-title">{sig.entry}</span>
                     </div>
-                    <div className="bg-green-500/5 p-3 rounded-lg border border-green-500/10 text-center">
-                      <span className="text-[9px] text-green-accent font-sans block uppercase font-bold tracking-widest mb-1">Take Profit</span>
-                      <span className="text-xs sm:text-sm font-black text-green-accent">{sig.tp}</span>
+                    <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/10">
+                      <span className="text-[8px] text-red-400 font-sans block uppercase font-bold tracking-wider mb-1">Stop Loss</span>
+                      <span className="text-xs font-black text-red-400">{sig.sl}</span>
                     </div>
-                    <div className="bg-red-500/5 p-3 rounded-lg border border-red-500/10 text-center">
-                      <span className="text-[9px] text-red-400 font-sans block uppercase font-bold tracking-widest mb-1">Stop Loss</span>
-                      <span className="text-xs sm:text-sm font-black text-red-400">{sig.sl}</span>
+                    <div className="bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
+                      <span className="text-[8px] text-blue-400 font-sans block uppercase font-bold tracking-wider mb-1">CTC (Cost)</span>
+                      <span className="text-xs font-black text-blue-300">{(sig as any).ctc || sig.entry}</span>
+                    </div>
+                    <div className="bg-green-500/5 p-2 rounded-lg border border-green-500/10">
+                      <span className="text-[8px] text-green-accent font-sans block uppercase font-bold tracking-wider mb-1">Take Profit</span>
+                      <span className="text-xs font-black text-green-accent">{(sig as any).tp1 || sig.tp}</span>
                     </div>
                   </div>
                 ) : (
