@@ -327,10 +327,21 @@ function VIPDashboard() {
 
   const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "TARGET" | "SL" | "CTC">("ALL");
 
-  // Load VIP signals from Firebase Firestore cloud DB in real-time
+  // Load VIP signals from API route & Firestore cloud DB in real-time
   useEffect(() => {
     let unsubscribe: () => void = () => {};
 
+    // 1. Fetch from server API route
+    fetch("/api/vip-signals")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.signals) && data.signals.length > 0) {
+          setSignalsList(data.signals);
+        }
+      })
+      .catch((err) => console.error("API fetch signals error:", err));
+
+    // 2. Real-time Firestore sync listener
     try {
       const signalsRef = collection(db, "vip_signals");
       const q = query(signalsRef);
@@ -366,26 +377,10 @@ function VIPDashboard() {
             if (typeof window !== "undefined") {
               localStorage.setItem("tfx_vip_signals", JSON.stringify(loaded));
             }
-          } else {
-            // Firestore returned empty snapshot
-            const stored = localStorage.getItem("tfx_vip_signals");
-            if (stored !== null) {
-              try {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) setSignalsList(parsed);
-              } catch (e) {}
-            }
           }
         },
         (error) => {
           console.error("Firestore onSnapshot error:", error);
-          const stored = localStorage.getItem("tfx_vip_signals");
-          if (stored !== null) {
-            try {
-              const parsed = JSON.parse(stored);
-              if (Array.isArray(parsed)) setSignalsList(parsed);
-            } catch (e) {}
-          }
         }
       );
     } catch (err) {
@@ -426,6 +421,13 @@ function VIPDashboard() {
       localStorage.setItem("tfx_signals", JSON.stringify(updated));
       window.dispatchEvent(new Event("tfx_vip_signals_updated"));
     }
+
+    // Sync to API route asynchronously
+    fetch("/api/vip-signals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signals: updated })
+    }).catch((err) => console.error("Failed to sync signals to API:", err));
   };
 
   const handleAddSignal = async (e: React.FormEvent) => {
