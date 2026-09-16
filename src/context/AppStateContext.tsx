@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useFirebaseAuth } from "@/lib/firebaseAuth";
+import { db } from "@/lib/firebase";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 
 export interface User {
   uid: string;
@@ -493,28 +495,71 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     syncStorage("tfx_courses", updated);
   };
 
-  const addSignal = (signal: Omit<Signal, "id" | "timestamp">) => {
+  const addSignal = async (signal: Omit<Signal, "id" | "timestamp">) => {
+    const newId = "sig-" + Date.now();
+    const createdAtNum = Date.now();
+    const timeStr = new Date().toISOString().replace("T", " ").substring(0, 16);
     const newSignal: Signal = {
       ...signal,
-      id: "sig-" + Math.floor(Math.random() * 10000),
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 16)
+      id: newId,
+      timestamp: timeStr
     };
     const updated = [newSignal, ...signals];
     setSignals(updated);
     syncStorage("tfx_signals", updated);
     syncStorage("tfx_vip_signals", updated);
     if (typeof window !== "undefined") {
+      localStorage.setItem("tfx_vip_signals_initialized", "true");
       window.dispatchEvent(new Event("tfx_vip_signals_updated"));
+    }
+
+    try {
+      await setDoc(doc(db, "vip_signals", newId), {
+        pair: signal.pair,
+        type: signal.type,
+        entry: signal.entry,
+        tp1: signal.tp,
+        tp2: "-",
+        sl: signal.sl,
+        ctc: signal.entry,
+        status: signal.status,
+        rr: "1:2.0",
+        accuracy: "85%",
+        time: timeStr,
+        session: "London",
+        createdAt: createdAtNum
+      });
+
+      fetch("/api/vip-signals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signals: updated })
+      }).catch((err) => console.error("Failed sync to API:", err));
+    } catch (err) {
+      console.error("Error adding signal to Firestore:", err);
     }
   };
 
-  const deleteSignal = (id: string) => {
+  const deleteSignal = async (id: string) => {
     const updated = signals.filter(s => s.id !== id);
     setSignals(updated);
     syncStorage("tfx_signals", updated);
     syncStorage("tfx_vip_signals", updated);
     if (typeof window !== "undefined") {
+      localStorage.setItem("tfx_vip_signals_initialized", "true");
       window.dispatchEvent(new Event("tfx_vip_signals_updated"));
+    }
+
+    try {
+      await deleteDoc(doc(db, "vip_signals", id));
+
+      fetch("/api/vip-signals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signals: updated })
+      }).catch((err) => console.error("Failed sync to API:", err));
+    } catch (err) {
+      console.error("Error deleting signal from Firestore:", err);
     }
   };
 
