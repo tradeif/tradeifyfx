@@ -322,19 +322,25 @@ function VIPDashboard() {
   const [editRr, setEditRr] = useState("1:2.5");
   const [editAccuracy, setEditAccuracy] = useState("85%");
 
+  const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "TARGET" | "SL" | "CTC">("ALL");
+
   // Load VIP signals from localStorage if available
   useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tfx_vip_signals");
-      if (stored) {
+      if (stored !== null) {
         try {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed)) {
             setSignalsList(parsed);
           }
         } catch (e) {
           console.error("Failed to parse stored VIP signals", e);
         }
+      } else {
+        // Initialize localStorage on first load
+        localStorage.setItem("tfx_vip_signals", JSON.stringify(INITIAL_SIGNALS));
+        setSignalsList(INITIAL_SIGNALS);
       }
     }
   }, []);
@@ -342,6 +348,14 @@ function VIPDashboard() {
   if (!user) return null;
 
   const isAdmin = true;
+
+  const filteredSignals = signalsList.filter((sig) => {
+    if (filterTab === "ACTIVE") return sig.status === "Active";
+    if (filterTab === "TARGET") return sig.status.includes("TP") || sig.status.includes("Target");
+    if (filterTab === "SL") return sig.status.includes("SL") || sig.status.includes("Stop Loss");
+    if (filterTab === "CTC") return sig.status.includes("CTC") || sig.status.includes("Cost");
+    return true;
+  });
 
   const loginDate = user.loginHistory?.[0]
     ? new Date(user.loginHistory[0]).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
@@ -531,7 +545,7 @@ function VIPDashboard() {
 
         {/* Live VIP Signals Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <div className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -556,25 +570,59 @@ function VIPDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {signalsList.map((sig) => {
-              const isHitTP = sig.status.includes("TP") || sig.status.includes("Target");
-              const isHitSL = sig.status.includes("SL") || sig.status.includes("Stop Loss");
-              const isHitCTC = sig.status.includes("CTC") || sig.status.includes("Cost");
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-2 flex-wrap text-xs pt-1">
+            {[
+              { id: "ALL", label: `All (${signalsList.length})` },
+              { id: "ACTIVE", label: `Active (${signalsList.filter(s => s.status === "Active").length})` },
+              { id: "TARGET", label: `Target Hit (${signalsList.filter(s => s.status.includes("TP") || s.status.includes("Target")).length})` },
+              { id: "SL", label: `SL Hit (${signalsList.filter(s => s.status.includes("SL") || s.status.includes("Stop Loss")).length})` },
+              { id: "CTC", label: `CTC Hit (${signalsList.filter(s => s.status.includes("CTC") || s.status.includes("Cost")).length})` },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFilterTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors cursor-pointer ${
+                  filterTab === tab.id
+                    ? "bg-gold text-black shadow-sm font-black"
+                    : "bg-white/5 border border-panel-border text-desc hover:text-title hover:bg-white/10"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-              return (
-                <div 
-                  key={sig.id}
-                  className={`glass-panel p-6 rounded-2xl border flex flex-col justify-between transition-colors bg-panel-bg relative overflow-hidden ${
-                    sig.status === "Active" 
-                      ? "border-gold/20 hover:border-gold/30 shadow-[0_0_15px_rgba(219,178,59,0.05)]" 
-                      : isHitTP
-                        ? "border-green-500/20 hover:border-green-500/30" 
-                        : isHitCTC
-                          ? "border-blue-500/20 hover:border-blue-500/30"
-                          : "border-red-500/20 hover:border-red-500/30"
-                  }`}
-                >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSignals.length === 0 ? (
+              <div className="col-span-full glass-panel p-12 rounded-2xl text-center border-panel-border bg-panel-bg space-y-3">
+                <Zap className="w-8 h-8 text-gold/40 mx-auto" />
+                <h3 className="text-base font-bold text-title">No signals found</h3>
+                <p className="text-xs text-desc">
+                  {signalsList.length === 0
+                    ? "All signals have been removed or deleted."
+                    : "There are currently no signals matching your selected filter."}
+                </p>
+              </div>
+            ) : (
+              filteredSignals.map((sig) => {
+                const isHitTP = sig.status.includes("TP") || sig.status.includes("Target");
+                const isHitSL = sig.status.includes("SL") || sig.status.includes("Stop Loss");
+                const isHitCTC = sig.status.includes("CTC") || sig.status.includes("Cost");
+
+                return (
+                  <div 
+                    key={sig.id}
+                    className={`glass-panel p-6 rounded-2xl border flex flex-col justify-between transition-colors bg-panel-bg relative overflow-hidden ${
+                      sig.status === "Active" 
+                        ? "border-gold/20 hover:border-gold/30 shadow-[0_0_15px_rgba(219,178,59,0.05)]" 
+                        : isHitTP
+                          ? "border-green-500/20 hover:border-green-500/30" 
+                          : isHitCTC
+                            ? "border-blue-500/20 hover:border-blue-500/30"
+                            : "border-red-500/20 hover:border-red-500/30"
+                    }`}
+                  >
                   <div className="space-y-4">
                     {/* Header info */}
                     <div className="flex justify-between items-center pb-3.5 border-b border-panel-border">
@@ -721,7 +769,8 @@ function VIPDashboard() {
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
           </div>
         </div>
 

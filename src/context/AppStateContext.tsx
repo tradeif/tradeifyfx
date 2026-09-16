@@ -365,7 +365,16 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
         setCourses(migrated);
       }
-      if (storedSignals) setSignals(JSON.parse(storedSignals));
+      if (storedSignals !== null) {
+        try {
+          const parsed = JSON.parse(storedSignals);
+          if (Array.isArray(parsed)) setSignals(parsed);
+        } catch (e) {
+          console.error("Failed to parse stored signals", e);
+        }
+      } else {
+        localStorage.setItem("tfx_signals", JSON.stringify(INITIAL_SIGNALS));
+      }
       if (storedBlogs) {
         const parsed = JSON.parse(storedBlogs) as Blog[];
         const migrated = parsed.map(b => {
