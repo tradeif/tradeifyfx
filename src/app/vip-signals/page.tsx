@@ -9,6 +9,8 @@ import {
   Clock, TrendingUp, TrendingDown, Plus, Trash2, X, Pencil, Check
 } from "lucide-react";
 import { useFirebaseAuth } from "@/lib/firebaseAuth";
+import { db } from "@/lib/firebase";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
 // ─── Signal Data ──────────────────────────────────────────────────────────────
 
@@ -26,6 +28,7 @@ interface VIPSignalItem {
   accuracy: string;
   time: string;
   session: string;
+  createdAt?: number;
 }
 
 const INITIAL_SIGNALS: VIPSignalItem[] = [
@@ -324,40 +327,73 @@ function VIPDashboard() {
 
   const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "TARGET" | "SL" | "CTC">("ALL");
 
-  // Load VIP signals from localStorage if available and sync across tabs/updates
+  // Load VIP signals from Firebase Firestore cloud DB in real-time
   useEffect(() => {
-    const loadSignals = () => {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("tfx_vip_signals");
-        if (stored !== null) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed)) {
-              setSignalsList(parsed);
+    let unsubscribe: () => void = () => {};
+
+    try {
+      const signalsRef = collection(db, "vip_signals");
+      const q = query(signalsRef);
+
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const loaded: VIPSignalItem[] = [];
+            snapshot.forEach((docSnap) => {
+              const data = docSnap.data();
+              loaded.push({
+                id: docSnap.id,
+                pair: data.pair || "",
+                type: data.type || "BUY",
+                entry: data.entry || "",
+                tp1: data.tp1 || "",
+                tp2: data.tp2 || "-",
+                sl: data.sl || "",
+                ctc: data.ctc || data.entry || "",
+                status: data.status || "Active",
+                rr: data.rr || "1:2.0",
+                accuracy: data.accuracy || "85%",
+                time: data.time || "",
+                session: data.session || "London",
+                createdAt: data.createdAt || 0,
+              });
+            });
+
+            loaded.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            setSignalsList(loaded);
+
+            if (typeof window !== "undefined") {
+              localStorage.setItem("tfx_vip_signals", JSON.stringify(loaded));
             }
-          } catch (e) {
-            console.error("Failed to parse stored VIP signals", e);
+          } else {
+            // Firestore returned empty snapshot
+            const stored = localStorage.getItem("tfx_vip_signals");
+            if (stored !== null) {
+              try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) setSignalsList(parsed);
+              } catch (e) {}
+            }
           }
-        } else {
-          // Initialize localStorage on first load
-          localStorage.setItem("tfx_vip_signals", JSON.stringify(INITIAL_SIGNALS));
-          setSignalsList(INITIAL_SIGNALS);
+        },
+        (error) => {
+          console.error("Firestore onSnapshot error:", error);
+          const stored = localStorage.getItem("tfx_vip_signals");
+          if (stored !== null) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (Array.isArray(parsed)) setSignalsList(parsed);
+            } catch (e) {}
+          }
         }
-      }
-    };
-
-    loadSignals();
-
-    const handleSync = () => {
-      loadSignals();
-    };
-
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("tfx_vip_signals_updated", handleSync);
+      );
+    } catch (err) {
+      console.error("Failed to setup Firestore listener:", err);
+    }
 
     return () => {
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("tfx_vip_signals_updated", handleSync);
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
@@ -392,15 +428,16 @@ function VIPDashboard() {
     }
   };
 
-  const handleAddSignal = (e: React.FormEvent) => {
+  const handleAddSignal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pair || !entry || !tp1 || !sl) {
       alert("Please fill in Pair, Entry, TP1, and Stop Loss fields.");
       return;
     }
 
-    const newSignal: VIPSignalItem = {
-      id: "sig-" + Date.now(),
+    const newId = "sig-" + Date.now();
+    const createdAtNum = Date.now();
+    const newSignalData = {
       pair: pair.toUpperCase().trim(),
       type,
       entry,
@@ -412,11 +449,19 @@ function VIPDashboard() {
       rr: rr || "1:2.0",
       accuracy: accuracy || "85%",
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      session
+      session,
+      createdAt: createdAtNum
     };
 
+    const newSignal: VIPSignalItem = { id: newId, ...newSignalData };
     const updated = [newSignal, ...signalsList];
     saveAndBroadcastSignals(updated);
+
+    try {
+      await setDoc(doc(db, "vip_signals", newId), newSignalData);
+    } catch (err) {
+      console.error("Firestore add error:", err);
+    }
 
     // Reset Form
     setPair("");
@@ -449,36 +494,45 @@ function VIPDashboard() {
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSignal) return;
 
+    const editData = {
+      pair: editPair.toUpperCase().trim(),
+      type: editType,
+      entry: editEntry,
+      tp1: editTp1,
+      tp2: editTp2 || "-",
+      sl: editSl,
+      ctc: editCtc || editEntry,
+      session: editSession,
+      status: editStatus,
+      rr: editRr,
+      accuracy: editAccuracy,
+      createdAt: editingSignal.createdAt || Date.now()
+    };
+
     const updated = signalsList.map((sig) => {
       if (sig.id === editingSignal.id) {
-        return {
-          ...sig,
-          pair: editPair.toUpperCase().trim(),
-          type: editType,
-          entry: editEntry,
-          tp1: editTp1,
-          tp2: editTp2 || "-",
-          sl: editSl,
-          ctc: editCtc || editEntry,
-          session: editSession,
-          status: editStatus,
-          rr: editRr,
-          accuracy: editAccuracy
-        };
+        return { ...sig, ...editData };
       }
       return sig;
     });
 
     saveAndBroadcastSignals(updated);
+
+    try {
+      await setDoc(doc(db, "vip_signals", editingSignal.id), editData, { merge: true });
+    } catch (err) {
+      console.error("Firestore update error:", err);
+    }
+
     setShowEditModal(false);
     setEditingSignal(null);
   };
 
-  const handleQuickStatusChange = (id: string, newStatus: string) => {
+  const handleQuickStatusChange = async (id: string, newStatus: string) => {
     const updated = signalsList.map((sig) => {
       if (sig.id === id) {
         return { ...sig, status: newStatus };
@@ -486,12 +540,24 @@ function VIPDashboard() {
       return sig;
     });
     saveAndBroadcastSignals(updated);
+
+    try {
+      await setDoc(doc(db, "vip_signals", id), { status: newStatus }, { merge: true });
+    } catch (err) {
+      console.error("Firestore quick status update error:", err);
+    }
   };
 
-  const handleDeleteSignal = (id: string) => {
+  const handleDeleteSignal = async (id: string) => {
     if (confirm("Are you sure you want to delete this signal?")) {
       const updated = signalsList.filter((s) => s.id !== id);
       saveAndBroadcastSignals(updated);
+
+      try {
+        await deleteDoc(doc(db, "vip_signals", id));
+      } catch (err) {
+        console.error("Firestore delete error:", err);
+      }
     }
   };
 
