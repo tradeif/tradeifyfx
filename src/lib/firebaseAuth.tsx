@@ -52,6 +52,8 @@ export interface FBUser {
   courseProgress: Record<string, Record<string, boolean>>; // productId → lessonId → done
   trades?: Trade[];
   balance?: number;
+  tier?: "Basic" | "Pro" | "VIP";
+  role?: "student" | "admin";
 }
 
 interface AuthContextType {
@@ -68,7 +70,8 @@ interface AuthContextType {
   clearError: () => void;
   saveTrade: (trade: Trade) => Promise<void>;
   updateBalance: (balance: number) => Promise<void>;
-  updateUserProfile: (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string }) => Promise<boolean>;
+  updateUserProfile: (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string; tier?: "Basic" | "Pro" | "VIP"; role?: "student" | "admin" }) => Promise<boolean>;
+  updateUserTierByAdmin: (targetUid: string, newTier: "Basic" | "Pro" | "VIP") => Promise<boolean>;
 }
 
 export interface SignUpData {
@@ -525,20 +528,24 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user]);
 
   // ── Update User Profile Details ──────────────────────────────────────────
-  const updateUserProfile = useCallback(async (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string }): Promise<boolean> => {
+  const updateUserProfile = useCallback(async (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string; tier?: "Basic" | "Pro" | "VIP"; role?: "student" | "admin" }): Promise<boolean> => {
     if (!user) return false;
 
     const newFirstName = data.firstName !== undefined ? data.firstName : user.firstName;
     const newLastName = data.lastName !== undefined ? data.lastName : user.lastName;
     const newPhone = data.phone !== undefined ? data.phone : user.phone;
     const newDisplayName = data.displayName || `${newFirstName} ${newLastName}`.trim();
+    const newTier = data.tier !== undefined ? data.tier : (user.tier || "VIP");
+    const newRole = data.role !== undefined ? data.role : (user.role || "student");
 
     const updatedUser: FBUser = {
       ...user,
       firstName: newFirstName,
       lastName: newLastName,
       displayName: newDisplayName,
-      phone: newPhone
+      phone: newPhone,
+      tier: newTier,
+      role: newRole
     };
 
     setUser(updatedUser);
@@ -549,11 +556,28 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         firstName: newFirstName,
         lastName: newLastName,
         displayName: newDisplayName,
-        phone: newPhone
+        phone: newPhone,
+        tier: newTier,
+        role: newRole
       });
       return true;
     } catch (err) {
       console.error("Error updating user profile in Firestore:", err);
+      return false;
+    }
+  }, [user]);
+
+  // ── Update User Tier By Admin ─────────────────────────────────────────────
+  const updateUserTierByAdmin = useCallback(async (targetUid: string, newTier: "Basic" | "Pro" | "VIP"): Promise<boolean> => {
+    try {
+      const userDocRef = doc(db, "users", targetUid);
+      await updateDoc(userDocRef, { tier: newTier });
+      if (user && user.uid === targetUid) {
+        setUser(prev => prev ? { ...prev, tier: newTier } : null);
+      }
+      return true;
+    } catch (err) {
+      console.error("Error updating user tier by admin:", err);
       return false;
     }
   }, [user]);
@@ -574,7 +598,8 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         clearError,
         saveTrade,
         updateBalance,
-        updateUserProfile
+        updateUserProfile,
+        updateUserTierByAdmin
       }}
     >
       {children}
