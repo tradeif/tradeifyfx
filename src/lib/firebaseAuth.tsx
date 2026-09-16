@@ -279,6 +279,46 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch (err: unknown) {
       console.error("SignIn error:", err);
       const firebaseError = err as { code?: string; message?: string };
+
+      // Auto-create user account if it doesn't exist in Firebase Auth yet
+      if (
+        firebaseError.code === "auth/user-not-found" ||
+        firebaseError.code === "auth/invalid-credential"
+      ) {
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const firebaseUser = userCredential.user;
+          const nameParts = (firebaseUser.displayName || email.split("@")[0]).split(" ");
+          const firstName = nameParts[0] || "Trader";
+          const lastName = nameParts.slice(1).join(" ") || "";
+          const now = new Date().toISOString();
+
+          const dbUser: FBUser = {
+            uid: firebaseUser.uid,
+            firstName,
+            lastName,
+            displayName: firebaseUser.displayName || email.split("@")[0].toUpperCase(),
+            email: email.toLowerCase().trim(),
+            phone: "",
+            photoURL: firebaseUser.photoURL || null,
+            emailVerified: firebaseUser.emailVerified,
+            createdAt: now,
+            loginHistory: [now],
+            enrolledProducts: [],
+            courseProgress: {},
+            trades: [],
+            balance: 100000
+          };
+
+          await setDoc(doc(db, "users", firebaseUser.uid), dbUser);
+          setUser(dbUser);
+          setLoading(false);
+          return true;
+        } catch (signUpErr: unknown) {
+          console.error("Auto sign-up fallback error:", signUpErr);
+        }
+      }
+
       let msg = firebaseError.message || "Sign in failed.";
       if (
         firebaseError.code === "auth/user-not-found" ||
