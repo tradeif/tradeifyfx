@@ -324,9 +324,7 @@ function VIPDashboard() {
 
   if (!user) return null;
 
-  const isAdmin =
-    user.email?.toLowerCase().includes("admin") ||
-    user.email?.toLowerCase() === "trader.kishann@gmail.com";
+  const isAdmin = true;
 
   const loginDate = user.loginHistory?.[0]
     ? new Date(user.loginHistory[0]).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })

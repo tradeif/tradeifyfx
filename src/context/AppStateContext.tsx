@@ -299,7 +299,7 @@ const INITIAL_MESSAGES: ContactMessage[] = [
   }
 ];
 
-const ADMIN_EMAILS = ["trader.kishann@gmail.com"];
+const ADMIN_EMAILS = ["trader.kishan@gmail.com", "trader.kishann@gmail.com"];
 const isAdminEmail = (email: string): boolean => {
   if (!email) return false;
   const norm = email.toLowerCase().trim();
