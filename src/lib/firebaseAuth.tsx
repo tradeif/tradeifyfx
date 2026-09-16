@@ -68,6 +68,7 @@ interface AuthContextType {
   clearError: () => void;
   saveTrade: (trade: Trade) => Promise<void>;
   updateBalance: (balance: number) => Promise<void>;
+  updateUserProfile: (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string }) => Promise<boolean>;
 }
 
 export interface SignUpData {
@@ -523,6 +524,39 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
   }, [user]);
 
+  // ── Update User Profile Details ──────────────────────────────────────────
+  const updateUserProfile = useCallback(async (data: { firstName?: string; lastName?: string; phone?: string; displayName?: string }): Promise<boolean> => {
+    if (!user) return false;
+
+    const newFirstName = data.firstName !== undefined ? data.firstName : user.firstName;
+    const newLastName = data.lastName !== undefined ? data.lastName : user.lastName;
+    const newPhone = data.phone !== undefined ? data.phone : user.phone;
+    const newDisplayName = data.displayName || `${newFirstName} ${newLastName}`.trim();
+
+    const updatedUser: FBUser = {
+      ...user,
+      firstName: newFirstName,
+      lastName: newLastName,
+      displayName: newDisplayName,
+      phone: newPhone
+    };
+
+    setUser(updatedUser);
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        firstName: newFirstName,
+        lastName: newLastName,
+        displayName: newDisplayName,
+        phone: newPhone
+      });
+      return true;
+    } catch (err) {
+      console.error("Error updating user profile in Firestore:", err);
+      return false;
+    }
+  }, [user]);
 
   return (
     <FirebaseAuthContext.Provider
@@ -539,7 +573,8 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         updateLessonProgress,
         clearError,
         saveTrade,
-        updateBalance
+        updateBalance,
+        updateUserProfile
       }}
     >
       {children}

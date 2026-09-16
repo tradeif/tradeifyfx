@@ -293,11 +293,60 @@ function VIPAuthGate({ onSuccess }: { onSuccess: () => void }) {
 // ─── VIP Signals Dashboard ────────────────────────────────────────────────────
 
 function VIPDashboard() {
-  const { user, signOut } = useFirebaseAuth();
-  const [signalsList, setSignalsList] = useState<VIPSignalItem[]>(INITIAL_SIGNALS);
+  const { user, signOut, updateUserProfile } = useFirebaseAuth();
+  const [signalsList, setSignalsList] = useState<VIPSignalItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("tfx_vip_signals");
+      if (cached !== null) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return INITIAL_SIGNALS;
+  });
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSignal, setEditingSignal] = useState<VIPSignalItem | null>(null);
+
+  // Edit Profile Form State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMsg, setProfileMsg] = useState("");
+
+  const handleOpenProfileModal = () => {
+    if (user) {
+      setEditFirstName(user.firstName || "");
+      setEditLastName(user.lastName || "");
+      setEditPhone(user.phone || "");
+      setProfileMsg("");
+      setShowProfileModal(true);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileMsg("");
+    const ok = await updateUserProfile({
+      firstName: editFirstName,
+      lastName: editLastName,
+      phone: editPhone
+    });
+    setProfileSaving(false);
+    if (ok) {
+      setProfileMsg("✓ Profile details updated successfully!");
+      setTimeout(() => {
+        setShowProfileModal(false);
+        setProfileMsg("");
+      }, 1200);
+    } else {
+      setProfileMsg("Failed to update profile details. Please try again.");
+    }
+  };
 
   // Add Signal Form State
   const [pair, setPair] = useState("");
@@ -331,7 +380,7 @@ function VIPDashboard() {
   useEffect(() => {
     let unsubscribe: () => void = () => {};
 
-    // 1. Fetch from server API route
+    // 1. Fetch from server API route if populated
     fetch("/api/vip-signals")
       .then((res) => res.json())
       .then((data) => {
@@ -348,7 +397,9 @@ function VIPDashboard() {
 
       unsubscribe = onSnapshot(
         q,
-        (snapshot) => {
+        async (snapshot) => {
+          const isInitialized = typeof window !== "undefined" && localStorage.getItem("tfx_vip_signals_initialized") === "true";
+
           if (!snapshot.empty) {
             const loaded: VIPSignalItem[] = [];
             snapshot.forEach((docSnap) => {
@@ -376,6 +427,37 @@ function VIPDashboard() {
 
             if (typeof window !== "undefined") {
               localStorage.setItem("tfx_vip_signals", JSON.stringify(loaded));
+              localStorage.setItem("tfx_vip_signals_initialized", "true");
+            }
+          } else {
+            if (isInitialized) {
+              setSignalsList([]);
+              if (typeof window !== "undefined") {
+                localStorage.setItem("tfx_vip_signals", JSON.stringify([]));
+              }
+            } else {
+              const now = Date.now();
+              for (let i = 0; i < INITIAL_SIGNALS.length; i++) {
+                const sig = INITIAL_SIGNALS[i];
+                await setDoc(doc(db, "vip_signals", sig.id), {
+                  pair: sig.pair,
+                  type: sig.type,
+                  entry: sig.entry,
+                  tp1: sig.tp1,
+                  tp2: sig.tp2,
+                  sl: sig.sl,
+                  ctc: sig.ctc || sig.entry,
+                  status: sig.status,
+                  rr: sig.rr,
+                  accuracy: sig.accuracy,
+                  time: sig.time,
+                  session: sig.session,
+                  createdAt: now - i * 1000,
+                });
+              }
+              if (typeof window !== "undefined") {
+                localStorage.setItem("tfx_vip_signals_initialized", "true");
+              }
             }
           }
         },
@@ -419,6 +501,7 @@ function VIPDashboard() {
     if (typeof window !== "undefined") {
       localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
       localStorage.setItem("tfx_signals", JSON.stringify(updated));
+      localStorage.setItem("tfx_vip_signals_initialized", "true");
       window.dispatchEvent(new Event("tfx_vip_signals_updated"));
     }
 
@@ -611,22 +694,37 @@ function VIPDashboard() {
         </div>
 
         {/* Account Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { label: "Email", value: user.email, icon: Mail },
-            { label: "Phone", value: user.phone || "Not provided", icon: Phone },
-            { label: "Member Since", value: new Date(user.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }), icon: Shield }
-          ].map((info, i) => (
-            <div key={i} className="glass-panel p-4 rounded-xl border-panel-border bg-panel-bg flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
-                <info.icon className="w-4 h-4 text-gold" />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-title flex items-center gap-2">
+              <User className="w-4 h-4 text-gold" />
+              <span>VIP Member Profile</span>
+            </h2>
+            <button
+              onClick={handleOpenProfileModal}
+              className="px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 text-gold border border-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span>Edit Profile Details</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { label: "Member Name", value: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.displayName || "VIP Member", icon: User },
+              { label: "Email", value: user.email, icon: Mail },
+              { label: "Phone", value: user.phone || "Not provided", icon: Phone },
+            ].map((info, i) => (
+              <div key={i} className="glass-panel p-4 rounded-xl border-panel-border bg-panel-bg flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                  <info.icon className="w-4 h-4 text-gold" />
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-[10px] text-desc uppercase font-bold">{info.label}</div>
+                  <div className="text-xs font-semibold text-title truncate">{info.value}</div>
+                </div>
               </div>
-              <div className="overflow-hidden">
-                <div className="text-[10px] text-desc uppercase font-bold">{info.label}</div>
-                <div className="text-xs font-semibold text-title truncate">{info.value}</div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Live VIP Signals Section */}
@@ -1245,6 +1343,96 @@ function VIPDashboard() {
                 >
                   <Check className="w-4 h-4" />
                   <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit VIP Member Profile Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-md glass-panel border border-gold/30 p-6 rounded-2xl shadow-2xl bg-[#121212] space-y-4">
+            <div className="flex items-center justify-between border-b border-panel-border pb-3">
+              <h3 className="text-base font-extrabold text-title flex items-center gap-2">
+                <User className="w-4 h-4 text-gold" />
+                <span>Update Member Profile Details</span>
+              </h3>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="p-1 rounded hover:bg-white/10 text-desc hover:text-title transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {profileMsg && (
+              <div className={`p-3 rounded-lg text-xs font-bold ${profileMsg.includes("✓") ? "bg-green-500/10 border border-green-500/20 text-green-accent" : "bg-red-500/10 border border-red-500/20 text-red-400"}`}>
+                {profileMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">First Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFirstName}
+                    onChange={(e) => setEditFirstName(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Last Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editLastName}
+                    onChange={(e) => setEditLastName(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+91 9876543210"
+                  className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Registered Email (Read Only)</label>
+                <input
+                  type="email"
+                  disabled
+                  value={user.email}
+                  className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/5 text-desc text-xs cursor-not-allowed"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-title font-bold text-xs uppercase hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="flex-1 py-3 rounded-xl bg-gradient-gold text-black font-extrabold text-xs uppercase tracking-wider shadow-md hover:opacity-90 transition-all glow-gold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{profileSaving ? "Saving..." : "Save Details"}</span>
                 </button>
               </div>
             </form>

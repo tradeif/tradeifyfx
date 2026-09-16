@@ -2,40 +2,51 @@
 
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/context/AppStateContext";
-import { User, Key, Moon, Sun } from "lucide-react";
+import { useFirebaseAuth } from "@/lib/firebaseAuth";
+import { User, Key, Moon, Sun, Phone, Mail, Shield } from "lucide-react";
 
 export default function ProfileSettings() {
-  const { user, theme, toggleTheme } = useAppState();
+  const { theme, toggleTheme } = useAppState();
+  const { user: fbUser, updateUserProfile } = useFirebaseAuth();
   
   // Local settings form state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDisplayName(user.displayName);
+    if (fbUser) {
+      setFirstName(fbUser.firstName || "");
+      setLastName(fbUser.lastName || "");
+      setPhone(fbUser.phone || "");
+      setDisplayName(fbUser.displayName || `${fbUser.firstName || ''} ${fbUser.lastName || ''}`.trim());
     }
-  }, [user]);
+  }, [fbUser]);
 
-  if (!user) return null;
+  if (!fbUser) return null;
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!displayName) return;
+    setSaving(true);
 
-    // Simulate save by updating state context
-    const updatedUser = {
-      ...user,
+    const ok = await updateUserProfile({
+      firstName,
+      lastName,
+      phone,
       displayName
-    };
-    // Sync storage
-    localStorage.setItem("tfx_user", JSON.stringify(updatedUser));
-    // Reload state context hook simulation by simply refreshing (or state is synced locally)
-    alert("Profile display name updated successfully!");
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    });
+
+    setSaving(false);
+    if (ok) {
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 4000);
+    } else {
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
   const handlePasswordSave = (e: React.FormEvent) => {
@@ -59,7 +70,7 @@ export default function ProfileSettings() {
         <div className="glass-panel p-6 rounded-2xl border-panel-border bg-panel-bg space-y-4">
           <h3 className="text-xs font-bold text-title uppercase tracking-widest border-b border-panel-border pb-3 flex items-center gap-2">
             <User className="w-4 h-4 text-gold" />
-            <span>Profile Data</span>
+            <span>Profile Details</span>
           </h3>
 
           <form onSubmit={handleProfileSave} className="space-y-4">
@@ -68,8 +79,44 @@ export default function ProfileSettings() {
               <input
                 type="email"
                 disabled
-                value={user.email}
-                className="w-full px-3 py-2.5 rounded-lg bg-gray-100 dark:bg-white/5 border border-panel-border text-xs sm:text-sm text-muted-dark cursor-not-allowed"
+                value={fbUser.email}
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-100 dark:bg-white/5 border border-panel-border text-xs sm:text-sm text-desc cursor-not-allowed"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">First Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First Name"
+                  className="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm text-title placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gold"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Last Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last Name"
+                  className="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm text-title placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Phone Number</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 9876543210"
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm text-title placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gold"
               />
             </div>
 
@@ -80,22 +127,23 @@ export default function ProfileSettings() {
                 required
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter name"
+                placeholder="Display Name"
                 className="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm text-title placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gold"
               />
             </div>
 
             {savedSuccess && (
               <p className="text-xs text-green-accent font-bold">
-                ✓ Display name saved locally.
+                ✓ Profile details updated and saved in database!
               </p>
             )}
 
             <button
               type="submit"
+              disabled={saving}
               className="w-full py-2.5 rounded-lg bg-gradient-gold text-black font-extrabold text-xs uppercase tracking-wider shadow-md hover:opacity-90 transition-all cursor-pointer"
             >
-              Update Profile Name
+              {saving ? "Saving Changes..." : "Update Profile Details"}
             </button>
           </form>
         </div>
