@@ -8,7 +8,6 @@ import {
   BookOpen, 
   Video, 
   Zap, 
-  BookMarked, 
   FileText, 
   Settings, 
   LogOut, 
@@ -37,7 +36,6 @@ export default function DashboardLayout({
     { name: "My Courses", href: "/dashboard", icon: BookOpen },
     { name: "Live Sessions", href: "/dashboard/live", icon: Video },
     { name: "Trading Signals", href: "/dashboard/signals", icon: Zap },
-    { name: "Trading Journal", href: "/dashboard/journal", icon: BookMarked },
     { name: "Resources", href: "/dashboard/resources", icon: FileText },
     { name: "Profile Settings", href: "/dashboard/settings", icon: Settings },
   ];

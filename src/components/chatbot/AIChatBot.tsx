@@ -14,7 +14,7 @@ export default function AIChatBot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
-      text: "Hello! Welcome to TRADEIFYFX. 📊 I am your AI Trading Assistant powered by DeepSeek AI. How can I help you master the markets today? Ask me about SMC, Gold strategy, signals, or courses!",
+      text: "Hello! Welcome to TRADEIFYFX. 📊 I am your AI Trading Assistant. How can I help you master the markets today? Ask me about SMC, Gold strategy, signals, or courses!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -96,7 +96,7 @@ export default function AIChatBot() {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-black leading-none">TRADEIFYFX Bot</h4>
-                <span className="text-[10px] text-black/70 font-semibold">Powered by DeepSeek AI</span>
+                <span className="text-[10px] text-black/70 font-semibold">Powered by AI Assistant</span>
               </div>
             </div>
             <button

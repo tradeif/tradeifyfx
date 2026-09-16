@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || "";
-
-const openai = new OpenAI({
-  apiKey: NVIDIA_API_KEY,
-  baseURL: "https://integrate.api.nvidia.com/v1",
-});
-
-interface ExtendedMessage {
-  reasoning?: string;
-  reasoning_content?: string;
-  content?: string | null;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const { message, history } = await req.json() as { message: string; history?: { sender: string; text: string }[] };
+    const { message, history } = (await req.json()) as {
+      message: string;
+      history?: { sender: string; text: string }[];
+    };
 
     if (!message) {
       return NextResponse.json({ error: "Missing message" }, { status: 400 });
     }
+
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NVIDIA_API_KEY || "";
+    const isGemini = !!process.env.GEMINI_API_KEY;
+
+    const openai = new OpenAI({
+      apiKey,
+      baseURL: isGemini
+        ? "https://generativelanguage.googleapis.com/v1beta/openai/"
+        : "https://integrate.api.nvidia.com/v1",
+    });
+
+    const model = isGemini ? "gemini-2.5-flash" : "deepseek-ai/deepseek-v4-pro";
 
     // Build chat history for multi-turn context
     const chatHistory = (history ?? []).map((m: { sender: string; text: string }) => ({
@@ -42,31 +44,23 @@ Keep responses concise (2-4 sentences), professional, and highly actionable.
 If you don't know something specific to TRADEIFYFX, guide the user to contact support.
 Do not discuss topics unrelated to trading or the platform.`;
 
-    // NVIDIA DeepSeek requires vendor-specific params not in the OpenAI types
-    const completion = await (openai.chat.completions.create as (...args: unknown[]) => Promise<unknown>)({
-      model: "deepseek-ai/deepseek-v4-pro",
+    const completion = await openai.chat.completions.create({
+      model,
       messages: [
         { role: "system", content: systemPrompt },
         ...chatHistory,
         { role: "user", content: message },
       ],
-      temperature: 1,
-      top_p: 0.95,
-      max_tokens: 16384,
-      chat_template_kwargs: {
-        thinking: true,
-        reasoning_effort: "high"
-      }
-    }) as { choices: Array<{ message: ExtendedMessage }> };
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
 
-    const messageObj = completion.choices[0]?.message;
-    const reasoning = messageObj?.reasoning || messageObj?.reasoning_content || "";
-    const content = messageObj?.content || "";
+    const content = completion.choices[0]?.message?.content || "";
 
     if (content) {
-      return NextResponse.json({ text: content, reasoning: reasoning });
+      return NextResponse.json({ text: content });
     } else {
-      console.error("NVIDIA DeepSeek chatbot error: Empty response content", JSON.stringify(completion));
+      console.error("Chatbot error: Empty response content", JSON.stringify(completion));
       return NextResponse.json({ error: "Failed to generate response" }, { status: 500 });
     }
   } catch (error: unknown) {
@@ -75,4 +69,5 @@ Do not discuss topics unrelated to trading or the platform.`;
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
 

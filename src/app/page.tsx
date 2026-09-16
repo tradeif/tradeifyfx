@@ -327,13 +327,13 @@ export default function Home() {
               Elite Tools to Fast-Track Your Trading Growth
             </h2>
             <p className="text-desc text-sm max-w-2xl mx-auto">
-              Powerful products designed for serious traders — from AI-powered journaling to expert signals and complete trading education.
+              Powerful products designed for serious traders — from expert signals to custom indicators and complete trading education.
             </p>
           </div>
 
           {/* Cards Grid — 2x2 on large, 1-col on mobile */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {courses.map((course) => {
+            {courses.filter((course) => course.id !== "tradinjournal").map((course) => {
               // Determine product-specific route and button label
               const productConfig: Record<string, { href: string; label: string; badge?: string }> = {
                 "tradinjournal":       { href: "/tradinjournal",   label: "Open Journal",  badge: "FREE" },
