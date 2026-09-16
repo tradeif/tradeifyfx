@@ -299,6 +299,13 @@ const INITIAL_MESSAGES: ContactMessage[] = [
   }
 ];
 
+const ADMIN_EMAILS = ["trader.kishann@gmail.com"];
+const isAdminEmail = (email: string): boolean => {
+  if (!email) return false;
+  const norm = email.toLowerCase().trim();
+  return norm.includes("admin") || ADMIN_EMAILS.includes(norm);
+};
+
 export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const { user: fbUser, signOut: fbSignOut } = useFirebaseAuth();
@@ -306,12 +313,13 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     Promise.resolve().then(() => {
       if (fbUser) {
+        const isAdmin = isAdminEmail(fbUser.email);
         setUser({
           uid: fbUser.uid,
           email: fbUser.email,
           displayName: fbUser.displayName || `${fbUser.firstName} ${fbUser.lastName}`.trim() || fbUser.email.split("@")[0].toUpperCase(),
-          role: fbUser.email.toLowerCase().includes("admin") ? "admin" : "student",
-          tier: fbUser.email.toLowerCase().includes("admin") ? "VIP" : "Basic",
+          role: isAdmin ? "admin" : "student",
+          tier: isAdmin ? "VIP" : "Basic",
           enrolledCourses: fbUser.enrolledProducts || []
         });
       } else {
@@ -390,7 +398,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const normalizedEmail = email.toLowerCase().trim();
     let simulatedUser: User;
 
-    if (normalizedEmail.includes("admin") || role === "admin") {
+    if (isAdminEmail(normalizedEmail) || role === "admin") {
       simulatedUser = {
         uid: "usr-admin",
         email: normalizedEmail,
@@ -417,12 +425,13 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const register = (name: string, email: string, role?: "student" | "admin") => {
     const normalizedEmail = email.toLowerCase().trim();
+    const isAdmin = isAdminEmail(normalizedEmail) || role === "admin";
     const simulatedUser: User = {
       uid: "usr-" + Math.floor(Math.random() * 10000),
       email: normalizedEmail,
       displayName: name,
-      role: role || "student",
-      tier: "Basic",
+      role: isAdmin ? "admin" : (role || "student"),
+      tier: isAdmin ? "VIP" : "Basic",
       enrolledCourses: ["forex-mastery"]
     };
 
