@@ -6,7 +6,7 @@ import {
   Zap, Shield, LogOut, User,
   Mail, Phone, Lock, Eye, EyeOff, Globe, CheckCircle,
   ArrowRight, Bell, Target, AlertTriangle, Star,
-  Clock, TrendingUp, TrendingDown, Plus, Trash2, X
+  Clock, TrendingUp, TrendingDown, Plus, Trash2, X, Pencil, Check
 } from "lucide-react";
 import { useFirebaseAuth } from "@/lib/firebaseAuth";
 
@@ -20,6 +20,7 @@ interface VIPSignalItem {
   tp1: string;
   tp2: string;
   sl: string;
+  ctc?: string;
   status: string;
   rr: string;
   accuracy: string;
@@ -28,12 +29,12 @@ interface VIPSignalItem {
 }
 
 const INITIAL_SIGNALS: VIPSignalItem[] = [
-  { id: "s1", pair: "XAUUSD", type: "BUY", entry: "2318.50", tp1: "2330.00", tp2: "2345.00", sl: "2308.00", status: "Active", rr: "1:2.5", accuracy: "87%", time: "09:45 AM", session: "London" },
-  { id: "s2", pair: "EURUSD", type: "SELL", entry: "1.0852", tp1: "1.0810", tp2: "1.0780", sl: "1.0875", status: "Active", rr: "1:3.1", accuracy: "79%", time: "10:30 AM", session: "London" },
-  { id: "s3", pair: "BTCUSD", type: "BUY", entry: "64,200", tp1: "65,800", tp2: "67,000", sl: "63,100", status: "Hit TP1", rr: "1:2.0", accuracy: "82%", time: "Yesterday", session: "NY" },
-  { id: "s4", pair: "GBPUSD", type: "BUY", entry: "1.2695", tp1: "1.2750", tp2: "1.2800", sl: "1.2650", status: "Active", rr: "1:2.4", accuracy: "76%", time: "08:15 AM", session: "London" },
-  { id: "s5", pair: "NASDAQ", type: "SELL", entry: "19,850", tp1: "19,600", tp2: "19,350", sl: "19,980", status: "SL Hit", rr: "1:2.0", accuracy: "71%", time: "Yesterday", session: "NY" },
-  { id: "s6", pair: "USDJPY", type: "BUY", entry: "157.80", tp1: "158.40", tp2: "159.00", sl: "157.30", status: "Active", rr: "1:1.8", accuracy: "74%", time: "11:00 AM", session: "Tokyo" }
+  { id: "s1", pair: "XAUUSD", type: "BUY", entry: "2318.50", tp1: "2330.00", tp2: "2345.00", sl: "2308.00", ctc: "2318.50", status: "Active", rr: "1:2.5", accuracy: "87%", time: "09:45 AM", session: "London" },
+  { id: "s2", pair: "EURUSD", type: "SELL", entry: "1.0852", tp1: "1.0810", tp2: "1.0780", sl: "1.0875", ctc: "1.0852", status: "Active", rr: "1:3.1", accuracy: "79%", time: "10:30 AM", session: "London" },
+  { id: "s3", pair: "BTCUSD", type: "BUY", entry: "64,200", tp1: "65,800", tp2: "67,000", sl: "63,100", ctc: "64,200", status: "Hit TP1", rr: "1:2.0", accuracy: "82%", time: "Yesterday", session: "NY" },
+  { id: "s4", pair: "GBPUSD", type: "BUY", entry: "1.2695", tp1: "1.2750", tp2: "1.2800", sl: "1.2650", ctc: "1.2695", status: "Active", rr: "1:2.4", accuracy: "76%", time: "08:15 AM", session: "London" },
+  { id: "s5", pair: "NASDAQ", type: "SELL", entry: "19,850", tp1: "19,600", tp2: "19,350", sl: "19,980", ctc: "19,850", status: "SL Hit", rr: "1:2.0", accuracy: "71%", time: "Yesterday", session: "NY" },
+  { id: "s6", pair: "USDJPY", type: "BUY", entry: "157.80", tp1: "158.40", tp2: "159.00", sl: "157.30", ctc: "157.80", status: "Active", rr: "1:1.8", accuracy: "74%", time: "11:00 AM", session: "Tokyo" }
 ];
 
 // ─── Auth Gate ────────────────────────────────────────────────────────────────
@@ -292,6 +293,8 @@ function VIPDashboard() {
   const { user, signOut } = useFirebaseAuth();
   const [signalsList, setSignalsList] = useState<VIPSignalItem[]>(INITIAL_SIGNALS);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSignal, setEditingSignal] = useState<VIPSignalItem | null>(null);
 
   // Add Signal Form State
   const [pair, setPair] = useState("");
@@ -300,10 +303,24 @@ function VIPDashboard() {
   const [tp1, setTp1] = useState("");
   const [tp2, setTp2] = useState("");
   const [sl, setSl] = useState("");
+  const [ctc, setCtc] = useState("");
   const [session, setSession] = useState("London");
   const [status, setStatus] = useState("Active");
   const [rr, setRr] = useState("1:2.5");
   const [accuracy, setAccuracy] = useState("85%");
+
+  // Edit Signal Form State
+  const [editPair, setEditPair] = useState("");
+  const [editType, setEditType] = useState<"BUY" | "SELL">("BUY");
+  const [editEntry, setEditEntry] = useState("");
+  const [editTp1, setEditTp1] = useState("");
+  const [editTp2, setEditTp2] = useState("");
+  const [editSl, setEditSl] = useState("");
+  const [editCtc, setEditCtc] = useState("");
+  const [editSession, setEditSession] = useState("London");
+  const [editStatus, setEditStatus] = useState("Active");
+  const [editRr, setEditRr] = useState("1:2.5");
+  const [editAccuracy, setEditAccuracy] = useState("85%");
 
   // Load VIP signals from localStorage if available
   useEffect(() => {
@@ -345,6 +362,7 @@ function VIPDashboard() {
       tp1,
       tp2: tp2 || "-",
       sl,
+      ctc: ctc || entry,
       status,
       rr: rr || "1:2.0",
       accuracy: accuracy || "85%",
@@ -365,11 +383,74 @@ function VIPDashboard() {
     setTp1("");
     setTp2("");
     setSl("");
+    setCtc("");
     setSession("London");
     setStatus("Active");
     setRr("1:2.5");
     setAccuracy("85%");
     setShowAddModal(false);
+  };
+
+  const handleOpenEdit = (sig: VIPSignalItem) => {
+    setEditingSignal(sig);
+    setEditPair(sig.pair);
+    setEditType(sig.type);
+    setEditEntry(sig.entry);
+    setEditTp1(sig.tp1);
+    setEditTp2(sig.tp2 || "");
+    setEditSl(sig.sl);
+    setEditCtc(sig.ctc || sig.entry);
+    setEditSession(sig.session);
+    setEditStatus(sig.status);
+    setEditRr(sig.rr);
+    setEditAccuracy(sig.accuracy);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSignal) return;
+
+    const updated = signalsList.map((sig) => {
+      if (sig.id === editingSignal.id) {
+        return {
+          ...sig,
+          pair: editPair.toUpperCase().trim(),
+          type: editType,
+          entry: editEntry,
+          tp1: editTp1,
+          tp2: editTp2 || "-",
+          sl: editSl,
+          ctc: editCtc || editEntry,
+          session: editSession,
+          status: editStatus,
+          rr: editRr,
+          accuracy: editAccuracy
+        };
+      }
+      return sig;
+    });
+
+    setSignalsList(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
+    }
+
+    setShowEditModal(false);
+    setEditingSignal(null);
+  };
+
+  const handleQuickStatusChange = (id: string, newStatus: string) => {
+    const updated = signalsList.map((sig) => {
+      if (sig.id === id) {
+        return { ...sig, status: newStatus };
+      }
+      return sig;
+    });
+    setSignalsList(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tfx_vip_signals", JSON.stringify(updated));
+    }
   };
 
   const handleDeleteSignal = (id: string) => {
@@ -476,99 +557,171 @@ function VIPDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {signalsList.map((sig) => (
-              <div 
-                key={sig.id}
-                className={`glass-panel p-6 rounded-2xl border flex flex-col justify-between transition-colors bg-panel-bg relative overflow-hidden ${
-                  sig.status === "Active" 
-                    ? "border-gold/20 hover:border-gold/30 shadow-[0_0_15px_rgba(219,178,59,0.05)]" 
-                    : sig.status.includes("TP") 
-                      ? "border-green-500/20 hover:border-green-500/30" 
-                      : "border-red-500/20 hover:border-red-500/30"
-                }`}
-              >
-                <div className="space-y-4">
-                  {/* Header info */}
-                  <div className="flex justify-between items-center pb-3.5 border-b border-panel-border">
-                    <div>
-                      <h3 className="text-base font-black text-title flex items-center gap-1.5">
-                        {sig.pair}
-                        {sig.type === "BUY" ? (
-                          <TrendingUp className="w-4 h-4 text-green-accent" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-400" />
-                        )}
-                      </h3>
-                      <span className="text-[9px] text-desc font-mono font-bold tracking-wide uppercase bg-white/5 border border-panel-border px-1.5 py-0.5 rounded">
-                        {sig.session} Session
-                      </span>
-                    </div>
+            {signalsList.map((sig) => {
+              const isHitTP = sig.status.includes("TP") || sig.status.includes("Target");
+              const isHitSL = sig.status.includes("SL") || sig.status.includes("Stop Loss");
+              const isHitCTC = sig.status.includes("CTC") || sig.status.includes("Cost");
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                          sig.status === "Active"
-                            ? "bg-gold text-black animate-pulse"
-                            : sig.status.includes("TP")
-                              ? "bg-green-500/20 text-green-accent border border-green-500/30"
-                              : "bg-red-500/20 text-red-400 border border-red-500/30"
-                        }`}>
-                          {sig.status}
-                        </span>
-                        <span className="text-[9px] text-desc font-mono font-semibold flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-gold" />
-                          {sig.time}
+              return (
+                <div 
+                  key={sig.id}
+                  className={`glass-panel p-6 rounded-2xl border flex flex-col justify-between transition-colors bg-panel-bg relative overflow-hidden ${
+                    sig.status === "Active" 
+                      ? "border-gold/20 hover:border-gold/30 shadow-[0_0_15px_rgba(219,178,59,0.05)]" 
+                      : isHitTP
+                        ? "border-green-500/20 hover:border-green-500/30" 
+                        : isHitCTC
+                          ? "border-blue-500/20 hover:border-blue-500/30"
+                          : "border-red-500/20 hover:border-red-500/30"
+                  }`}
+                >
+                  <div className="space-y-4">
+                    {/* Header info */}
+                    <div className="flex justify-between items-center pb-3.5 border-b border-panel-border">
+                      <div>
+                        <h3 className="text-base font-black text-title flex items-center gap-1.5">
+                          {sig.pair}
+                          {sig.type === "BUY" ? (
+                            <TrendingUp className="w-4 h-4 text-green-accent" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-red-400" />
+                          )}
+                        </h3>
+                        <span className="text-[9px] text-desc font-mono font-bold tracking-wide uppercase bg-white/5 border border-panel-border px-1.5 py-0.5 rounded">
+                          {sig.session} Session
                         </span>
                       </div>
 
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDeleteSignal(sig.id)}
-                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/20 transition-colors cursor-pointer"
-                          title="Delete Signal"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
+                            sig.status === "Active"
+                              ? "bg-gold text-black animate-pulse"
+                              : isHitTP
+                                ? "bg-green-500/20 text-green-accent border border-green-500/30"
+                                : isHitCTC
+                                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                  : "bg-red-500/20 text-red-400 border border-red-500/30"
+                          }`}>
+                            {sig.status}
+                          </span>
+                          <span className="text-[9px] text-desc font-mono font-semibold flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-gold" />
+                            {sig.time}
+                          </span>
+                        </div>
+
+                        {isAdmin && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleOpenEdit(sig)}
+                              className="p-1.5 rounded-lg bg-gold/10 hover:bg-gold/25 text-gold border border-gold/20 transition-colors cursor-pointer"
+                              title="Edit Signal & Levels"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSignal(sig.id)}
+                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/20 transition-colors cursor-pointer"
+                              title="Delete Signal"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Signals Numerical Box (Entry, Stop Loss, CTC, TP1) */}
+                    <div className="grid grid-cols-2 gap-2 py-1 font-mono text-center">
+                      <div className="bg-white/5 p-2 rounded-lg border border-panel-border">
+                        <span className="text-[8px] text-desc font-sans block uppercase font-bold tracking-wider mb-1">Entry</span>
+                        <span className="text-xs font-black text-title">{sig.entry}</span>
+                      </div>
+                      <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/15">
+                        <span className="text-[8px] text-red-400 font-sans block uppercase font-bold tracking-wider mb-1">Stop Loss (SL)</span>
+                        <span className="text-xs font-black text-red-400">{sig.sl}</span>
+                      </div>
+                      <div className="bg-blue-500/5 p-2 rounded-lg border border-blue-500/15">
+                        <span className="text-[8px] text-blue-400 font-sans block uppercase font-bold tracking-wider mb-1">CTC (Cost)</span>
+                        <span className="text-xs font-black text-blue-300">{sig.ctc || sig.entry}</span>
+                      </div>
+                      <div className="bg-green-500/5 p-2 rounded-lg border border-green-500/15">
+                        <span className="text-[8px] text-green-accent font-sans block uppercase font-bold tracking-wider mb-1">Take Profit 1</span>
+                        <span className="text-xs font-black text-green-accent">{sig.tp1}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Take Profit 2 row */}
+                    <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-panel-border font-mono text-xs">
+                      <span className="text-[9px] text-desc font-sans uppercase font-bold tracking-wider">TP 2 (Extended target)</span>
+                      <span className="font-black text-green-accent">{sig.tp2}</span>
+                    </div>
+
+                    {/* Quick Mark Signal Outcome / Hit Status */}
+                    {isAdmin && (
+                      <div className="pt-2 border-t border-panel-border/50">
+                        <span className="text-[8px] text-desc uppercase font-bold tracking-wider block mb-1.5">Mark Signal Outcome:</span>
+                        <div className="grid grid-cols-4 gap-1 text-[9px] font-bold">
+                          <button
+                            onClick={() => handleQuickStatusChange(sig.id, "Target Hit")}
+                            className={`py-1 rounded border transition-colors cursor-pointer text-center ${
+                              isHitTP
+                                ? "bg-green-500 text-black border-green-400 font-extrabold"
+                                : "bg-green-500/10 text-green-accent border-green-500/20 hover:bg-green-500/25"
+                            }`}
+                          >
+                            TP Hit
+                          </button>
+                          <button
+                            onClick={() => handleQuickStatusChange(sig.id, "SL Hit")}
+                            className={`py-1 rounded border transition-colors cursor-pointer text-center ${
+                              isHitSL
+                                ? "bg-red-500 text-white border-red-400 font-extrabold"
+                                : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/25"
+                            }`}
+                          >
+                            SL Hit
+                          </button>
+                          <button
+                            onClick={() => handleQuickStatusChange(sig.id, "CTC Hit")}
+                            className={`py-1 rounded border transition-colors cursor-pointer text-center ${
+                              isHitCTC
+                                ? "bg-blue-500 text-white border-blue-400 font-extrabold"
+                                : "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/25"
+                            }`}
+                          >
+                            CTC Hit
+                          </button>
+                          <button
+                            onClick={() => handleQuickStatusChange(sig.id, "Active")}
+                            className={`py-1 rounded border transition-colors cursor-pointer text-center ${
+                              sig.status === "Active"
+                                ? "bg-gold text-black border-gold font-extrabold"
+                                : "bg-gold/10 text-gold border-gold/20 hover:bg-gold/25"
+                            }`}
+                          >
+                            Active
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Signals Numerical Box */}
-                  <div className="grid grid-cols-3 gap-2 py-2 font-mono text-center">
-                    <div className="bg-white/5 p-2 rounded-lg border border-panel-border">
-                      <span className="text-[8px] text-desc font-sans block uppercase font-bold tracking-wider mb-1">Entry</span>
-                      <span className="text-xs font-black text-title">{sig.entry}</span>
-                    </div>
-                    <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/15">
-                      <span className="text-[8px] text-red-400 font-sans block uppercase font-bold tracking-wider mb-1">Stop Loss</span>
-                      <span className="text-xs font-black text-red-400">{sig.sl}</span>
-                    </div>
-                    <div className="bg-green-500/5 p-2 rounded-lg border border-green-500/15 col-span-1">
-                      <span className="text-[8px] text-green-accent font-sans block uppercase font-bold tracking-wider mb-1">TP 1</span>
-                      <span className="text-xs font-black text-green-accent">{sig.tp1}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Take Profit 2 row */}
-                  <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-panel-border font-mono text-xs">
-                    <span className="text-[9px] text-desc font-sans uppercase font-bold tracking-wider">TP 2 (Extended target)</span>
-                    <span className="font-black text-green-accent">{sig.tp2}</span>
+                  {/* Execution Advisory/Meta */}
+                  <div className="pt-4 border-t border-panel-border mt-4 flex items-center justify-between text-[9px] text-desc font-bold">
+                    <span className="flex items-center gap-1">
+                      <Target className="w-3 h-3 text-gold" />
+                      R:R Ratio: <span className="text-title">{sig.rr}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-gold" />
+                      Accuracy: <span className="text-title">{sig.accuracy}</span>
+                    </span>
                   </div>
                 </div>
-
-                {/* Execution Advisory/Meta */}
-                <div className="pt-4 border-t border-panel-border mt-4 flex items-center justify-between text-[9px] text-desc font-bold">
-                  <span className="flex items-center gap-1">
-                    <Target className="w-3 h-3 text-gold" />
-                    R:R Ratio: <span className="text-title">{sig.rr}</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Star className="w-3 h-3 text-gold" />
-                    Accuracy: <span className="text-title">{sig.accuracy}</span>
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -668,7 +821,7 @@ function VIPDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Entry Price *</label>
                   <input
@@ -691,6 +844,19 @@ function VIPDashboard() {
                     className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">CTC (Cost to Cost)</label>
+                  <input
+                    type="text"
+                    value={ctc}
+                    onChange={(e) => setCtc(e.target.value)}
+                    placeholder="Same as Entry"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Take Profit 1 *</label>
                   <input
@@ -702,9 +868,6 @@ function VIPDashboard() {
                     className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Take Profit 2</label>
                   <input
@@ -715,6 +878,9 @@ function VIPDashboard() {
                     className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Session</label>
                   <select
@@ -736,9 +902,11 @@ function VIPDashboard() {
                     className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
                   >
                     <option value="Active" className="bg-[#121212] text-title">Active</option>
+                    <option value="Target Hit" className="bg-[#121212] text-title">Target Hit (TP)</option>
                     <option value="Hit TP1" className="bg-[#121212] text-title">Hit TP1</option>
                     <option value="Hit TP2" className="bg-[#121212] text-title">Hit TP2</option>
-                    <option value="SL Hit" className="bg-[#121212] text-title">SL Hit</option>
+                    <option value="SL Hit" className="bg-[#121212] text-title">SL Hit (Stop Loss)</option>
+                    <option value="CTC Hit" className="bg-[#121212] text-title">CTC Hit (Cost to Cost)</option>
                   </select>
                 </div>
               </div>
@@ -773,6 +941,177 @@ function VIPDashboard() {
                 <Plus className="w-4 h-4" />
                 <span>Publish VIP Signal</span>
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Edit Signal Modal */}
+      {showEditModal && editingSignal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg glass-panel border border-gold/30 p-6 rounded-2xl shadow-2xl bg-[#121212] space-y-4">
+            <div className="flex items-center justify-between border-b border-panel-border pb-3">
+              <h3 className="text-base font-extrabold text-title flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-gold" />
+                <span>Edit VIP Signal &amp; Levels ({editPair})</span>
+              </h3>
+              <button
+                onClick={() => { setShowEditModal(false); setEditingSignal(null); }}
+                className="p-1 rounded hover:bg-white/10 text-desc hover:text-title transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Asset Pair *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editPair}
+                    onChange={(e) => setEditPair(e.target.value)}
+                    placeholder="e.g. XAUUSD"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Position Type *</label>
+                  <select
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value as "BUY" | "SELL")}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  >
+                    <option value="BUY" className="bg-[#121212] text-title">BUY</option>
+                    <option value="SELL" className="bg-[#121212] text-title">SELL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Entry Price *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editEntry}
+                    onChange={(e) => setEditEntry(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Stop Loss (SL) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editSl}
+                    onChange={(e) => setEditSl(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">CTC (Cost to Cost)</label>
+                  <input
+                    type="text"
+                    value={editCtc}
+                    onChange={(e) => setEditCtc(e.target.value)}
+                    placeholder="Entry price"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Take Profit 1 *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editTp1}
+                    onChange={(e) => setEditTp1(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Take Profit 2</label>
+                  <input
+                    type="text"
+                    value={editTp2}
+                    onChange={(e) => setEditTp2(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Session</label>
+                  <select
+                    value={editSession}
+                    onChange={(e) => setEditSession(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  >
+                    <option value="London" className="bg-[#121212] text-title">London Session</option>
+                    <option value="NY" className="bg-[#121212] text-title">NY Session</option>
+                    <option value="Tokyo" className="bg-[#121212] text-title">Tokyo Session</option>
+                    <option value="Asian" className="bg-[#121212] text-title">Asian Session</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Signal Status</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  >
+                    <option value="Active" className="bg-[#121212] text-title">Active</option>
+                    <option value="Target Hit" className="bg-[#121212] text-title">Target Hit (TP)</option>
+                    <option value="Hit TP1" className="bg-[#121212] text-title">Hit TP1</option>
+                    <option value="Hit TP2" className="bg-[#121212] text-title">Hit TP2</option>
+                    <option value="SL Hit" className="bg-[#121212] text-title">SL Hit (Stop Loss)</option>
+                    <option value="CTC Hit" className="bg-[#121212] text-title">CTC Hit (Cost to Cost)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">R:R Ratio</label>
+                  <input
+                    type="text"
+                    value={editRr}
+                    onChange={(e) => setEditRr(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-desc mb-1">Accuracy</label>
+                  <input
+                    type="text"
+                    value={editAccuracy}
+                    onChange={(e) => setEditAccuracy(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-title text-xs focus:border-gold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowEditModal(false); setEditingSignal(null); }}
+                  className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-title font-bold text-xs uppercase hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-xl bg-gradient-gold text-black font-extrabold text-xs uppercase tracking-wider shadow-md hover:opacity-90 transition-all glow-gold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
             </form>
           </div>
         </div>
