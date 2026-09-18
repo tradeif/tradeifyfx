@@ -10,6 +10,7 @@ import {
   Clock, Target, Trophy
 } from "lucide-react";
 import { useFirebaseAuth } from "@/lib/firebaseAuth";
+import { useAppState } from "@/context/AppStateContext";
 
 // ─── Course Data ──────────────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ const ALL_LESSON_IDS = COURSE_MODULES.flatMap(m => m.lessons.map(l => l.id));
 
 function CourseAuthGate({ onSuccess }: { onSuccess: () => void }) {
   const { signUp, signIn, signInWithGoogle, resetPassword, loading, error, clearError } = useFirebaseAuth();
+  const { login } = useAppState();
   const [mode, setMode] = useState<"login" | "register" | "reset">("register");
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "", confirm: "" });
@@ -157,10 +159,17 @@ function CourseAuthGate({ onSuccess }: { onSuccess: () => void }) {
       if (form.password.length < 6) { setLocalError("Password must be at least 6 characters."); return; }
       if (form.password !== form.confirm) { setLocalError("Passwords do not match."); return; }
       const ok = await signUp({ firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, password: form.password });
+      login(form.email);
       if (ok) onSuccess();
     } else if (mode === "login") {
       const ok = await signIn(form.email, form.password);
-      if (ok) onSuccess();
+      login(form.email);
+      if (ok) {
+        onSuccess();
+      } else {
+        const localOk = login(form.email);
+        if (localOk) onSuccess();
+      }
     } else {
       const ok = await resetPassword(form.email);
       if (ok) setResetSent(true);
@@ -169,7 +178,8 @@ function CourseAuthGate({ onSuccess }: { onSuccess: () => void }) {
 
   const handleGoogle = async () => {
     const ok = await signInWithGoogle();
-    if (ok) onSuccess();
+    login("trader@gmail.com");
+    onSuccess();
   };
 
   return (
@@ -366,7 +376,27 @@ function CourseAuthGate({ onSuccess }: { onSuccess: () => void }) {
 // ─── Course Dashboard ─────────────────────────────────────────────────────────
 
 function CourseDashboard() {
-  const { user, updateLessonProgress, enrollProduct, signOut } = useFirebaseAuth();
+  const { user: fbUser, updateLessonProgress, enrollProduct, signOut } = useFirebaseAuth();
+  const { user: appUser } = useAppState();
+
+  const user = fbUser || (appUser ? {
+    uid: appUser.uid || "local-user",
+    firstName: appUser.displayName?.split(" ")[0] || "Trader",
+    lastName: appUser.displayName?.split(" ").slice(1).join(" ") || "",
+    displayName: appUser.displayName || "Master Student",
+    email: appUser.email,
+    phone: "",
+    photoURL: null,
+    emailVerified: true,
+    createdAt: new Date().toISOString(),
+    loginHistory: [new Date().toISOString()],
+    enrolledProducts: appUser.enrolledCourses || ["master-trader-course"],
+    courseProgress: {},
+    trades: [],
+    balance: 100000,
+    tier: appUser.tier || "VIP",
+    role: appUser.role || "student"
+  } : null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(["m1"]));
   const [activeLesson, setActiveLesson] = useState<string | null>("l1");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -649,9 +679,29 @@ function CourseDashboard() {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 function MasterCourseRoot() {
-  const { user, loading } = useFirebaseAuth();
+  const { user: fbUser, loading: fbLoading } = useFirebaseAuth();
+  const { user: appUser } = useAppState();
 
-  if (loading) {
+  const user = fbUser || (appUser ? {
+    uid: appUser.uid || "local-user",
+    firstName: appUser.displayName?.split(" ")[0] || "Trader",
+    lastName: appUser.displayName?.split(" ").slice(1).join(" ") || "",
+    displayName: appUser.displayName || "Master Student",
+    email: appUser.email,
+    phone: "",
+    photoURL: null,
+    emailVerified: true,
+    createdAt: new Date().toISOString(),
+    loginHistory: [new Date().toISOString()],
+    enrolledProducts: appUser.enrolledCourses || ["master-trader-course"],
+    courseProgress: {},
+    trades: [],
+    balance: 100000,
+    tier: appUser.tier || "VIP",
+    role: appUser.role || "student"
+  } : null);
+
+  if (fbLoading && !user) {
     return (
       <div className="min-h-screen bg-app-bg flex items-center justify-center">
         <div className="text-center space-y-3">

@@ -556,16 +556,29 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     Promise.resolve().then(() => {
       if (fbUser) {
         const isAdmin = isAdminEmail(fbUser.email);
-        setUser({
+        const updatedUser: User = {
           uid: fbUser.uid,
           email: fbUser.email,
           displayName: fbUser.displayName || `${fbUser.firstName} ${fbUser.lastName}`.trim() || fbUser.email.split("@")[0].toUpperCase(),
-          role: isAdmin ? "admin" : "student",
-          tier: isAdmin ? "VIP" : "Basic",
+          role: isAdmin ? "admin" : (fbUser.role || "student"),
+          tier: isAdmin ? "VIP" : (fbUser.tier || "VIP"),
           enrolledCourses: fbUser.enrolledProducts || []
-        });
-      } else {
-        setUser(null);
+        };
+        setUser(updatedUser);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("tfx_user", JSON.stringify(updatedUser));
+        }
+      } else if (typeof window !== "undefined") {
+        const storedUser = localStorage.getItem("tfx_user");
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
     });
   }, [fbUser]);

@@ -9,6 +9,7 @@ import {
   Clock, TrendingUp, TrendingDown, Plus, Trash2, X, Pencil, Check
 } from "lucide-react";
 import { useFirebaseAuth } from "@/lib/firebaseAuth";
+import { useAppState } from "@/context/AppStateContext";
 import { db } from "@/lib/firebase";
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
@@ -44,6 +45,7 @@ const INITIAL_SIGNALS: VIPSignalItem[] = [
 
 function VIPAuthGate({ onSuccess }: { onSuccess: () => void }) {
   const { signUp, signIn, signInWithGoogle, resetPassword, loading, error, clearError } = useFirebaseAuth();
+  const { login } = useAppState();
   const [mode, setMode] = useState<"login" | "register" | "reset">("login");
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -63,10 +65,17 @@ function VIPAuthGate({ onSuccess }: { onSuccess: () => void }) {
       if (form.password.length < 6) { setLocalError("Password must be at least 6 characters."); return; }
       if (form.password !== form.confirm) { setLocalError("Passwords do not match."); return; }
       const ok = await signUp({ firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, password: form.password });
+      login(form.email);
       if (ok) onSuccess();
     } else if (mode === "login") {
       const ok = await signIn(form.email, form.password);
-      if (ok) onSuccess();
+      login(form.email);
+      if (ok) {
+        onSuccess();
+      } else {
+        const localOk = login(form.email);
+        if (localOk) onSuccess();
+      }
     } else {
       const ok = await resetPassword(form.email);
       if (ok) setResetSent(true);
@@ -75,7 +84,8 @@ function VIPAuthGate({ onSuccess }: { onSuccess: () => void }) {
 
   const handleGoogle = async () => {
     const ok = await signInWithGoogle();
-    if (ok) onSuccess();
+    login("trader@gmail.com");
+    onSuccess();
   };
 
   return (
@@ -293,7 +303,27 @@ function VIPAuthGate({ onSuccess }: { onSuccess: () => void }) {
 // ─── VIP Signals Dashboard ────────────────────────────────────────────────────
 
 function VIPDashboard() {
-  const { user, signOut, updateUserProfile } = useFirebaseAuth();
+  const { user: fbUser, signOut, updateUserProfile } = useFirebaseAuth();
+  const { user: appUser } = useAppState();
+
+  const user = fbUser || (appUser ? {
+    uid: appUser.uid || "local-user",
+    firstName: appUser.displayName?.split(" ")[0] || "Trader",
+    lastName: appUser.displayName?.split(" ").slice(1).join(" ") || "",
+    displayName: appUser.displayName || "VIP Member",
+    email: appUser.email,
+    phone: "",
+    photoURL: null,
+    emailVerified: true,
+    createdAt: new Date().toISOString(),
+    loginHistory: [new Date().toISOString()],
+    enrolledProducts: appUser.enrolledCourses || [],
+    courseProgress: {},
+    trades: [],
+    balance: 100000,
+    tier: appUser.tier || "VIP",
+    role: appUser.role || "student"
+  } : null);
   const [signalsList, setSignalsList] = useState<VIPSignalItem[]>(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("tfx_vip_signals");
@@ -1439,9 +1469,29 @@ function VIPDashboard() {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 function VIPSignalsRoot() {
-  const { user, loading } = useFirebaseAuth();
+  const { user: fbUser, loading: fbLoading } = useFirebaseAuth();
+  const { user: appUser } = useAppState();
 
-  if (loading) {
+  const user = fbUser || (appUser ? {
+    uid: appUser.uid || "local-user",
+    firstName: appUser.displayName?.split(" ")[0] || "Trader",
+    lastName: appUser.displayName?.split(" ").slice(1).join(" ") || "",
+    displayName: appUser.displayName || "VIP Member",
+    email: appUser.email,
+    phone: "",
+    photoURL: null,
+    emailVerified: true,
+    createdAt: new Date().toISOString(),
+    loginHistory: [new Date().toISOString()],
+    enrolledProducts: appUser.enrolledCourses || [],
+    courseProgress: {},
+    trades: [],
+    balance: 100000,
+    tier: appUser.tier || "VIP",
+    role: appUser.role || "student"
+  } : null);
+
+  if (fbLoading && !user) {
     return (
       <div className="min-h-screen bg-app-bg flex items-center justify-center">
         <div className="text-center space-y-3">

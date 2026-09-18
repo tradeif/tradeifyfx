@@ -89,9 +89,34 @@ const FirebaseAuthContext = createContext<AuthContextType | undefined>(undefined
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<FBUser | null>(null);
+  const [user, setUserState] = useState<FBUser | null>(() => {
+    if (typeof window === "undefined") return null;
+    const cached = localStorage.getItem("tfx_fb_user");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const setUser = useCallback((u: FBUser | null | ((prev: FBUser | null) => FBUser | null)) => {
+    setUserState((prev) => {
+      const next = typeof u === "function" ? u(prev) : u;
+      if (typeof window !== "undefined") {
+        if (next) {
+          localStorage.setItem("tfx_fb_user", JSON.stringify(next));
+        } else {
+          localStorage.removeItem("tfx_fb_user");
+        }
+      }
+      return next;
+    });
+  }, []);
 
   // Listen to Auth State Changes
   useEffect(() => {
@@ -162,13 +187,16 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           });
         }
       } else {
-        setUser(null);
+        const storedFb = typeof window !== "undefined" ? localStorage.getItem("tfx_fb_user") : null;
+        if (!storedFb) {
+          setUser(null);
+        }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [setUser]);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -415,13 +443,22 @@ export const FirebaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fbSignOut(auth)
       .then(() => {
         setUser(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("tfx_fb_user");
+          localStorage.removeItem("tfx_user");
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("SignOut error:", err);
+        setUser(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("tfx_fb_user");
+          localStorage.removeItem("tfx_user");
+        }
         setLoading(false);
       });
-  }, []);
+  }, [setUser]);
 
   // ── Reset Password ───────────────────────────────────────────────────────
   const resetPassword = useCallback(async (email: string): Promise<boolean> => {

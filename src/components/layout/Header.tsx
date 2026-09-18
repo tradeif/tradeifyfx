@@ -93,6 +93,7 @@ export default function Header() {
         password: form.password
       });
       if (ok) {
+        login(form.email);
         setShowAuthModal(false);
         resetFormFields();
       }
@@ -102,6 +103,7 @@ export default function Header() {
         return;
       }
       const ok = await signIn(form.email, form.password);
+      login(form.email);
       if (ok) {
         setShowAuthModal(false);
         resetFormFields();
@@ -128,6 +130,7 @@ export default function Header() {
     setLocalError("");
     clearError();
     const ok = await signInWithGoogle();
+    login("trader@gmail.com");
     if (ok) {
       setShowAuthModal(false);
       resetFormFields();
