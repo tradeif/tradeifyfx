@@ -127,6 +127,105 @@ body {
   box-shadow: 0 0 20px 0 var(--green-glow);
 }
 
+/* ==========================================================================
+   Ultra-High Quality Smooth Hero Background Glow System
+   ========================================================================== */
+
+.hero-glow-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Primary Smooth Centered Glow Aura behind Heading & Buttons */
+.hero-glow-aura {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -40%);
+  width: 120%;
+  max-width: 900px;
+  height: 550px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    rgba(255, 215, 0, 0.16) 0%,
+    rgba(245, 197, 24, 0.10) 25%,
+    rgba(212, 175, 55, 0.04) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  filter: blur(50px);
+  opacity: 0.95;
+  transition: opacity 0.5s ease, background 0.5s ease;
+}
+
+.light .hero-glow-aura {
+  background: radial-gradient(
+    ellipse 65% 55% at 50% 50%,
+    rgba(212, 175, 55, 0.14) 0%,
+    rgba(245, 197, 24, 0.08) 30%,
+    rgba(255, 220, 100, 0.02) 60%,
+    rgba(255, 255, 255, 0) 85%
+  );
+  filter: blur(55px);
+  opacity: 1;
+}
+
+/* Secondary Ambient Glow Layer */
+.hero-glow-ambient {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1100px;
+  height: 650px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 500px at 50% 35%,
+    rgba(255, 223, 0, 0.08) 0%,
+    rgba(0, 230, 118, 0.03) 45%,
+    transparent 75%
+  );
+  filter: blur(70px);
+}
+
+.light .hero-glow-ambient {
+  background: radial-gradient(
+    circle 550px at 50% 35%,
+    rgba(230, 180, 30, 0.07) 0%,
+    rgba(0, 200, 83, 0.02) 50%,
+    transparent 80%
+  );
+  filter: blur(75px);
+}
+
+/* Micro Radial Grid Overlay for Subtle Dithering & Texture (Prevents gradient banding) */
+.hero-glow-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(212, 175, 55, 0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, black 0%, transparent 70%);
+  opacity: 0.6;
+}
+
+.light .hero-glow-grid {
+  background-image: radial-gradient(rgba(180, 138, 31, 0.06) 1px, transparent 1px);
+  opacity: 0.7;
+}
+
+/* Hero Content Highlight Card Glow */
+.hero-content-glow {
+  position: relative;
+  z-index: 10;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

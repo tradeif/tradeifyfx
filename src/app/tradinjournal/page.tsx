@@ -88,7 +88,7 @@ export default function TradinJournalLanding() {
     <>
       <Header />
 
-      <main className="flex-1 bg-app-bg">
+      <main className="flex-1">
 
         {/* ── HERO ──────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden pt-16 pb-24 border-b border-panel-border">

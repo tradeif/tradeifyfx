@@ -118,13 +118,15 @@ export default function Home() {
       {/* Navigation Header */}
       <Header />
 
-      <main className="flex-1 bg-app-bg">
+      <main className="flex-1">
         {/* HERO SECTION */}
         <section className="relative overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32 border-b border-panel-border">
-          {/* Animated Background Grids */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold/5 via-white/40 to-white dark:from-gold/10 dark:via-black/40 dark:to-black pointer-events-none" />
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-green-accent/5 rounded-full blur-[140px] pointer-events-none" />
+          {/* High-Quality Smooth Hero Background Glow System */}
+          <div className="hero-glow-bg">
+            <div className="hero-glow-aura" />
+            <div className="hero-glow-ambient" />
+            <div className="hero-glow-grid" />
+          </div>
 
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <div className="space-y-6">

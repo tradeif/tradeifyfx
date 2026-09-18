@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { FirebaseAuthProvider } from "@/lib/firebaseAuth";
+import GlobalSparkParticles from "@/components/hero/GlobalSparkParticles";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +32,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-app-bg text-app-fg transition-colors duration-300 selection:bg-gold selection:text-black">
+      <body className="min-h-full flex flex-col bg-app-bg text-app-fg transition-colors duration-300 selection:bg-gold selection:text-black relative overflow-x-hidden">
         <FirebaseAuthProvider>
           <AppStateProvider>
-            {children}
+            <GlobalSparkParticles particleCount={35} />
+            <div className="relative z-10 flex flex-col min-h-full">
+              {children}
+            </div>
           </AppStateProvider>
         </FirebaseAuthProvider>
       </body>
