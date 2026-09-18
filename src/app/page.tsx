@@ -857,7 +857,7 @@ export default function Home() {
                   </a>
 
                   <a
-                    href="https://t.me/tradeifyfx"
+                    href="https://t.me/Tradeifyfx_1"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-400 hover:bg-blue-400/5 transition-all text-center group cursor-pointer"

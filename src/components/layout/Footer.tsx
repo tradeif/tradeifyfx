@@ -77,7 +77,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://t.me/tradeifyfx"
+                  href="https://t.me/Tradeifyfx_1"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-sec hover:text-blue-400 transition-colors"
