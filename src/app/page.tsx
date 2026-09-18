@@ -825,7 +825,7 @@ export default function Home() {
                     Never Trade Alone. Connect with 15k+ Traders!
                   </h2>
                   <p className="text-desc text-sm sm:text-base leading-relaxed">
-                    Access free daily chart updates, gold price movements, instant economic alerts, and live trading webinars. Our Telegram and WhatsApp feeds are 100% free to join.
+                    Access free daily chart updates, gold price movements, instant economic alerts, and live trading webinars. Our WhatsApp feed is 100% free to join.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 text-center">
@@ -844,27 +844,16 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="lg:col-span-5 flex justify-center items-center">
                   <a
                     href="https://wa.me/919799450432"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-green-accent hover:bg-green-500/5 transition-all text-center group cursor-pointer"
+                    className="w-full max-w-sm p-6 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-green-accent hover:bg-green-500/5 transition-all text-center group cursor-pointer shadow-lg"
                   >
-                    <MessageSquare className="w-8 h-8 text-green-accent mx-auto mb-3 group-hover:scale-105 transition-transform" />
-                    <h4 className="text-sm font-bold text-title">WhatsApp Community</h4>
-                    <p className="text-[10px] text-desc mt-1 leading-relaxed">Free daily signals, alerts & chart analysis updates</p>
-                  </a>
-
-                  <a
-                    href="https://t.me/Tradeifyfx_1"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-400 hover:bg-blue-400/5 transition-all text-center group cursor-pointer"
-                  >
-                    <Send className="w-8 h-8 text-blue-400 mx-auto mb-3 group-hover:scale-105 transition-transform" />
-                    <h4 className="text-sm font-bold text-title">Telegram Channel</h4>
-                    <p className="text-[10px] text-desc mt-1 leading-relaxed">Economic calendar breakdowns & instant alerts</p>
+                    <MessageSquare className="w-10 h-10 text-green-accent mx-auto mb-3 group-hover:scale-105 transition-transform" />
+                    <h4 className="text-base font-bold text-title">WhatsApp Community</h4>
+                    <p className="text-xs text-desc mt-1.5 leading-relaxed">Free daily signals, alerts & chart analysis updates</p>
                   </a>
                 </div>
               </div>

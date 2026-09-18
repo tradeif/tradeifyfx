@@ -958,40 +958,33 @@ function VIPDashboard() {
           </div>
         </div>
 
-        {/* Telegram Promo Section */}
+        {/* WhatsApp Promo Section */}
         <div className="glass-panel p-6 rounded-2xl border border-gold/20 bg-gradient-to-r from-panel-bg via-panel-bg to-gold/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center flex-shrink-0 text-gold shadow-md">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                  <path d="M22 2 11 13" />
-                </svg>
+                <Globe className="w-6 h-6 text-gold" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-extrabold text-title flex items-center gap-2">
-                  Official Telegram Group
+                  Official WhatsApp Community
                   <span className="px-2 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/30 text-[9px] font-black uppercase tracking-wider animate-pulse">Official</span>
                 </h3>
                 <p className="text-xs text-desc max-w-xl">
-                  Join our official Telegram group to get real-time VIP signals, exclusive trading updates, technical analysis, and interact with our growing community of successful traders.
+                  Join our official WhatsApp community to get real-time VIP signals, exclusive trading updates, technical analysis, and interact with our growing community of successful traders.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-              <div className="flex-1 sm:flex-initial flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-panel-border bg-black/30 text-xs font-mono text-sec select-all">
-                <Globe className="w-3.5 h-3.5 text-gold flex-shrink-0" />
-                <span>t.me/Tradeifyfx_1</span>
-              </div>
               <a
-                href="https://t.me/Tradeifyfx_1"
+                href="https://wa.me/919799450432"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-2.5 rounded-xl bg-gradient-gold text-black font-extrabold text-xs uppercase tracking-wider shadow-md hover:opacity-90 transition-all glow-gold flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
               >
-                Join Channel
+                Join WhatsApp Community
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>

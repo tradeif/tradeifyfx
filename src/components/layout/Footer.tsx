@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Send, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -77,41 +77,13 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://t.me/Tradeifyfx_1"
+                  href="https://wa.me/919799450432"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-sec hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-2 text-sm text-sec hover:text-green-accent transition-colors"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Telegram Channel</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://youtube.com/@tradeifyfx1?si=aZ7QlJ6rMFPlmB3f"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-sec hover:text-red-500 transition-colors"
-                >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.108C19.52 3.5 12 3.5 12 3.5s-7.52 0-9.388.555A3.002 3.002 0 0 0 .503 6.163C0 8.03 0 12 0 12s0 3.97.503 5.837a3.002 3.002 0 0 0 2.11 2.107C4.482 20.5 12 20.5 12 20.5s7.52 0 9.388-.556a3.005 3.005 0 0 0 2.11-2.107C24 15.97 24 12 24 12s0-3.97-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                  <span>YouTube Channel</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.instagram.com/tradeifyfx?igsh=emIzc2Ryem5mZ3gz"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-sec hover:text-pink-500 transition-colors"
-                >
-                  <svg className="w-4 h-4 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-                  </svg>
-                  <span>Instagram Profile</span>
+                  <MessageCircle className="w-4 h-4" />
+                  <span>WhatsApp Community</span>
                 </a>
               </li>
             </ul>
